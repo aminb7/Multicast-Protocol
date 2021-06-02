@@ -1,9 +1,13 @@
+#include <string>
 
 class Router
 {
 public:
-    Router() = default;
+    Router(std::string listen_port);
     ~Router() = default;
 
+    void start();
+
 private:
+    std::string listen_port;
 };
