@@ -1,14 +1,13 @@
-#include <string>
-#include <cstring>
 #include <iostream>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <arpa/inet.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <errno.h>
+#include <vector>
+#include <string>
+#include <map>
+#include <sys/wait.h>
+#include <sys/stat.h>
+#include <string.h>
+#include <unistd.h> 
+#include <dirent.h>
+#include <fcntl.h> 
 
 #include "../include/Utilities.h"
 

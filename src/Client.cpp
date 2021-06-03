@@ -24,8 +24,13 @@ void Client::start() {
     int max_fd = STDIN;
     int activity;
     char received_buffer[MAX_MESSAGE_SIZE] = {0};
+    string network_pipe = PIPE_ROOT_PATH + string(NETWORK_PIPE_NAME);
     printf("Client is starting ...\n");
     while (true) {
+        int network_pipe_fd = open(network_pipe.c_str(), O_RDWR);
+        max_fd = network_pipe_fd;
+        FD_SET(network_pipe_fd, &copy_fds);
+
         // Add fds to set
         memcpy(&read_fds, &copy_fds, sizeof(copy_fds));
 
@@ -57,6 +62,8 @@ void Client::start() {
                 }
             }
         }
+
+        close(network_pipe_fd);
         cout << "--------------- event ---------------" << endl;
     }
 }
