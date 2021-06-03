@@ -9,35 +9,41 @@ int main() {
 }
 
 Network::Network()
-: network_pipe(PIPE_ROOT_PATH + string(NETWORK_PIPE_NAME)) {
-    unlink(network_pipe.c_str());
-	mkfifo(network_pipe.c_str(), READ_WRITE);
+: network_pipe_read(PIPE_ROOT_PATH + string(NETWORK_PIPE_NAME) + string(READ_PIPE))
+, network_pipe_write(PIPE_ROOT_PATH + string(NETWORK_PIPE_NAME) + string(WRITE_PIPE)) {
+    unlink(network_pipe_read.c_str());
+	mkfifo(network_pipe_read.c_str(), READ_WRITE);
+    unlink(network_pipe_write.c_str());
+	mkfifo(network_pipe_write.c_str(), READ_WRITE);
 }
 
 void Network::start() {
-    
     char received_message[] = {0};
     fd_set fds;
     int maxfd;
+
+    int network_pipe_read_fd = open(network_pipe_read.c_str(), O_RDWR);
+    printf("Network is starting ...\n");
     while (true) {
-        int network_pipe_fd = open(network_pipe.c_str(), O_RDWR);
-        maxfd = network_pipe_fd;
+        maxfd = network_pipe_read_fd;
         FD_ZERO(&fds);
-        FD_SET(network_pipe_fd, &fds);
+        FD_SET(network_pipe_read_fd, &fds);
 
         if (select(maxfd + 1, &fds, NULL, NULL, NULL) < 0)
             return;
 
-        if (FD_ISSET(network_pipe_fd, &fds)) {
+        if (FD_ISSET(network_pipe_read_fd, &fds)) {
             memset(received_message, 0, sizeof received_message);
-            read(network_pipe_fd, received_message, MAX_MESSAGE_SIZE);
-            handle_network_message(received_message);
+            read(network_pipe_read_fd, received_message, MAX_MESSAGE_SIZE);
+            handle_message(received_message);
+            cout << "received network message: " << received_message << endl;
         }
 
-        close(network_pipe_fd);
+        cout << "--------------- event ---------------" << endl;
     }
+    close(network_pipe_read_fd);
 }
 
-void Network::handle_network_message(string message) {
+void Network::handle_message(string message) {
 
 }

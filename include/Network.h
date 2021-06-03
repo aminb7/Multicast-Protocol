@@ -18,8 +18,9 @@ public:
     ~Network() = default;
 
     void start();
-    void handle_network_message(std::string message);
+    void handle_message(std::string message);
 
 private:
-    std::string network_pipe;
+    std::string network_pipe_read;
+    std::string network_pipe_write;
 };

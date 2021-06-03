@@ -13,6 +13,8 @@
 #define LOCAL_IP "127.0.0.1"
 #define NETWORK_PIPE_NAME "network_pipe"
 #define PIPE_ROOT_PATH "build/"
+#define READ_PIPE "_r"
+#define WRITE_PIPE "_w"
 #define READ_WRITE 0666
 #define MAX_MESSAGE_SIZE 128
 #define MAX_COMMAND_SIZE 128
