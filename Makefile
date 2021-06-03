@@ -4,6 +4,13 @@ SRC_DIR = src
 INCLUDE_DIR = include
 CFLAGS = -std=c++11 -Wall -Werror -I$(INCLUDE_DIR)
 
+OBJECTS = \
+	$(BUILD_DIR)/Utilities.o \
+
+NetworkSensitivityList = \
+	$(SRC_DIR)/Network.cpp \
+	$(INCLUDE_DIR)/Network.h \
+
 ClientSensitivityList = \
 	$(SRC_DIR)/Client.cpp \
 	$(INCLUDE_DIR)/Client.h \
@@ -20,10 +27,17 @@ RouterSensitivityList = \
 	$(SRC_DIR)/Router.cpp \
 	$(INCLUDE_DIR)/Router.h \
 
-all: $(BUILD_DIR) Client.out Server.out GroupServer.out Router.out
+UtilitiesSensitivityList = \
+	$(SRC_DIR)/Utilities.cpp \
+	$(INCLUDE_DIR)/Utilities.h \
+
+all: $(BUILD_DIR) Network.out Client.out Server.out GroupServer.out Router.out
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
+
+Network.out: $(BUILD_DIR)/Network.o $(OBJECTS)
+	$(CC) $(CFLAGS) -o Network.out $(BUILD_DIR)/Network.o $(OBJECTS)
 
 Client.out: $(BUILD_DIR)/Client.o $(OBJECTS)
 	$(CC) $(CFLAGS) -o Client.out $(BUILD_DIR)/Client.o $(OBJECTS)
@@ -37,6 +51,9 @@ GroupServer.out: $(BUILD_DIR)/GroupServer.o $(OBJECTS)
 Router.out: $(BUILD_DIR)/Router.o $(OBJECTS)
 	$(CC) $(CFLAGS) -o Router.out $(BUILD_DIR)/Router.o $(OBJECTS)
 
+$(BUILD_DIR)/Network.o: $(NetworkSensitivityList)
+	$(CC) $(CFLAGS) -c $(SRC_DIR)/Network.cpp -o $(BUILD_DIR)/Network.o
+
 $(BUILD_DIR)/Client.o: $(ClientSensitivityList)
 	$(CC) $(CFLAGS) -c $(SRC_DIR)/Client.cpp -o $(BUILD_DIR)/Client.o
 
@@ -48,6 +65,9 @@ $(BUILD_DIR)/GroupServer.o: $(GroupServerSensitivityList)
 
 $(BUILD_DIR)/Router.o: $(RouterSensitivityList)
 	$(CC) $(CFLAGS) -c $(SRC_DIR)/Router.cpp -o $(BUILD_DIR)/Router.o
+
+$(BUILD_DIR)/Utilities.o: $(UtilitiesSensitivityList)
+	$(CC) $(CFLAGS) -c $(SRC_DIR)/Utilities.cpp -o $(BUILD_DIR)/Utilities.o
 
 .PHONY: clean
 clean:
