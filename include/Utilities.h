@@ -16,6 +16,20 @@
 
 #define LOCAL_IP "127.0.0.1"
 
+#define STDIN 0
+
+#define MAX_MESSAGE_SIZE 128
+#define MAX_COMMAND_SIZE 128
+
+#define COMMAND_DELIMITER '_'
+#define MESSAGE_DELIMITER '%'
+
+#define ARG0 0
+#define ARG1 1
+#define ARG2 2
+#define ARG3 3
+
+/// Pipe defines
 #define NETWORK_PIPE_NAME "network_pipe"
 #define PIPE_ROOT_PATH "build/"
 #define READ_PIPE "_r"
@@ -25,20 +39,41 @@
 #define GROUPSERVER_PIPE "_gs"
 #define READ_WRITE 0666
 
-#define MAX_MESSAGE_SIZE 128
-#define MAX_COMMAND_SIZE 128
+// Server
+////  Commands
+#define SERVER_TO_ROUTER_CONNECT_CMD "ConnectRouter"
 
-#define STDIN 0
+// Client
+////  Commands
+#define SET_CLIENT_IP_CMD "SetIp"
+#define GET_GROUP_LIST_CMD "GetGroupList"
+#define JOIN_GROUP_CMD "JoinGroupList"
+#define LEAVE_GROUP_CMD "LeaveGroupList"
+#define SELECT_GROUP_CMD "SelectGroupList"
+#define SEND_FILE_CMD "SendFile"
+#define SEND_MESSAGE_CMD "SendMessage"
+#define SHOW_GROUPS_CMD "ShowGroups"
+#define SYNC_CMD "Sync"
+#define SIGN_OUT_CMD "SignOut"
+////  Messages
+#define CLIENT_TO_SERVER_CONNECT_MSG "ClientServerConnect"
 
-#define CLIENT_TO_SERVER_CONNECT_MESSAGE "ClientServerConnect"
-#define GROUPSERVER_TO_SERVER_CONNECT_MESSAGE "GroupServerServerConnect"
+// GroupServer
+//// Commands
+#define SET_GROUP_IP_CMD "SetGroupIp"
+#define SET_GROUPSERVER_IP_CMD "SetIp"
+#define GROUPSERVER_TO_ROUTER_CONNECT_CMD "ConnectRouter"
+#define GROUPSERVER_TO_SERVER_CONNECT_CMD "AddServer"
+//// Messages
+#define GROUPSERVER_TO_SERVER_CONNECT_MSG "GroupServerServerConnect"
 
-#define COMMAND_DELIMITER '%'
+// Router Commands
+#define ROUTER_TO_ROUTER_CONNECT_CMD "ConnectRouter"
+#define CHANGE_COST_CMD "ChangeCost"
+#define DISCONNECT_LINK_CMD "DisconnectLink"
+#define SHOW_CMD "Show"
+//// Messages
 
-#define ARG0 0
-#define ARG1 1
-#define ARG2 2
-#define ARG3 3
 
 int create_socket(std::string ip, int port);
 

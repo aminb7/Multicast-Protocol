@@ -74,12 +74,12 @@ void Server::handle_command(string command) {
 }
 
 void Server::handle_network_message(string message) {
-    vector<string> command_parts = split(message, COMMAND_DELIMITER);
-    if (command_parts[ARG0] == CLIENT_TO_SERVER_CONNECT_MESSAGE)
-        handle_client_connect(command_parts[ARG1]);
+    vector<string> message_parts = split(message, MESSAGE_DELIMITER);
+    if (message_parts[ARG0] == CLIENT_TO_SERVER_CONNECT_MSG)
+        handle_client_connect(message_parts[ARG1]);
 
-    if (command_parts[ARG0] == GROUPSERVER_TO_SERVER_CONNECT_MESSAGE)
-        handle_group_server_connect(command_parts[ARG1]);
+    if (message_parts[ARG0] == GROUPSERVER_TO_SERVER_CONNECT_MSG)
+        handle_group_server_connect(message_parts[ARG1]);
 }
 
 void Server::handle_client_connect(string name) {

@@ -10,11 +10,13 @@ int main(int argc, char* argv[]) {
 
 GroupServer::GroupServer(string group_name, string server_ip)
 : group_name(group_name)
+, ip("")
+, group_ip("")
 , server_ip(server_ip) {
     // Send connection message to server.
     string server_pipe = PIPE_ROOT_PATH + string(server_ip) + READ_PIPE;
     int server_pipe_fd = open(server_pipe.c_str(), O_RDWR);
-    string connect_message = string(GROUPSERVER_TO_SERVER_CONNECT_MESSAGE) + COMMAND_DELIMITER + group_name;
+    string connect_message = string(GROUPSERVER_TO_SERVER_CONNECT_MSG) + MESSAGE_DELIMITER + group_name;
     write(server_pipe_fd, connect_message.c_str(), connect_message.size());
     close(server_pipe_fd);
 
