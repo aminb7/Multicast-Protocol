@@ -10,7 +10,13 @@ int main(int argc, char* argv[]) {
 
 Server::Server(string server_ip)
 : server_ip(server_ip)
-, server_port(8080) {
+, server_port(8080)
+, server_pipe((PIPE_ROOT_PATH + string(server_ip) + READ_PIPE), (PIPE_ROOT_PATH + string(server_ip) + WRITE_PIPE)) {
+    // Create pipes for incoming connections.
+    unlink(server_pipe.first.c_str());
+	mkfifo(server_pipe.first.c_str(), READ_WRITE);
+    unlink(server_pipe.second.c_str());
+	mkfifo(server_pipe.second.c_str(), READ_WRITE);
 }
 
 void Server::start() {
@@ -20,13 +26,12 @@ void Server::start() {
     int max_fd = STDIN;
     int activity;
     char received_buffer[MAX_MESSAGE_SIZE] = {0};
-    string network_pipe_read = PIPE_ROOT_PATH + string(NETWORK_PIPE_NAME) + string(READ_PIPE);
-    string network_pipe_write = PIPE_ROOT_PATH + string(NETWORK_PIPE_NAME) + string(WRITE_PIPE);
+    int server_pipe_fd = open(server_pipe.first.c_str(), O_RDWR);
+    printf("server_pipe: %s \n", server_pipe.first.c_str());
     printf("Server is starting ...\n");
     while (true) {
-        int network_pipe_write_fd = open(network_pipe_write.c_str(), O_RDWR);
-        max_fd = network_pipe_write_fd;
-        FD_SET(network_pipe_write_fd, &copy_fds);
+        max_fd = server_pipe_fd;
+        FD_SET(server_pipe_fd, &copy_fds);
 
         // Add fds to set
         memcpy(&read_fds, &copy_fds, sizeof(copy_fds));
@@ -44,37 +49,63 @@ void Server::start() {
             if (FD_ISSET(fd, &read_fds)) {
                 memset(received_buffer, 0, sizeof received_buffer);
 
-                // Command line input
+                // Receive command from command line.
                 if (fd == 0) {
                     cin >> received_buffer;
                     cout << "received command: " << received_buffer << endl;
                     handle_command(string(received_buffer));
                 }
 
-                // Network pip message
-                else if (fd == network_pipe_write_fd) {
+                // Receive connection message.
+                else if (fd == server_pipe_fd) {
                     read(fd, received_buffer, MAX_MESSAGE_SIZE);
-                    cout << "received network message: " << received_buffer << endl;
-                }
-
-                // Pipe pipe message
-                else {
-                    read(fd, received_buffer, MAX_MESSAGE_SIZE);
-                    cout << "received pipe message: " << received_buffer << endl;
-                    handle_pip_message(string(received_buffer));
+                    handle_network_message(string(received_buffer));
                 }
             }
         }
 
-        close(network_pipe_write_fd);
         cout << "--------------- event ---------------" << endl;
     }
+    close(server_pipe_fd);
 }
 
 void Server::handle_command(string command) {
 
 }
 
-void Server::handle_pip_message(string pipe_message) {
-    
+void Server::handle_network_message(string message) {
+    vector<string> command_parts = split(message, COMMAND_DELIMITER);
+    if (command_parts[ARG0] == CLIENT_TO_SERVER_CONNECT_MESSAGE)
+        handle_client_connect(command_parts[ARG1]);
+
+    if (command_parts[ARG0] == GROUPSERVER_TO_SERVER_CONNECT_MESSAGE)
+        handle_group_server_connect(command_parts[ARG1]);
+}
+
+void Server::handle_client_connect(string name) {
+    printf("Client with name %s connects\n", name.c_str());
+
+    pair<string, string> client_pipe = {(string(PIPE_ROOT_PATH) + SERVER_PIPE + CLIENT_PIPE + name + READ_PIPE),
+            (string(PIPE_ROOT_PATH) + SERVER_PIPE + CLIENT_PIPE + name + WRITE_PIPE)};
+
+    unlink(client_pipe.first.c_str());
+	mkfifo(client_pipe.first.c_str(), READ_WRITE);
+    unlink(client_pipe.second.c_str());
+	mkfifo(client_pipe.second.c_str(), READ_WRITE);
+
+    clients_pipes.insert({name, client_pipe});
+}
+
+void Server::handle_group_server_connect(string name) {
+    printf("Group server with name %s connects\n", name.c_str());
+
+    pair<string, string> group_server_pipe = {(string(PIPE_ROOT_PATH) + SERVER_PIPE + GROUPSERVER_PIPE + name + READ_PIPE),
+            (string(PIPE_ROOT_PATH) + SERVER_PIPE + GROUPSERVER_PIPE + name + WRITE_PIPE)};
+
+    unlink(group_server_pipe.first.c_str());
+	mkfifo(group_server_pipe.first.c_str(), READ_WRITE);
+    unlink(group_server_pipe.second.c_str());
+	mkfifo(group_server_pipe.second.c_str(), READ_WRITE);
+
+    group_servers_pipes.insert({name, group_server_pipe});
 }

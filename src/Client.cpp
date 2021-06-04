@@ -15,6 +15,15 @@ Client::Client(string name, string server_ip, string router_ip, string router_po
 , server_ip(server_ip)
 , router_ip(router_ip)
 , router_port(router_port) {
+    // Send connection message to server.
+    string server_pipe = PIPE_ROOT_PATH + string(server_ip) + READ_PIPE;
+    int server_pipe_fd = open(server_pipe.c_str(), O_RDWR);
+    string connect_message = string(CLIENT_TO_SERVER_CONNECT_MESSAGE) + COMMAND_DELIMITER + name;
+    write(server_pipe_fd, connect_message.c_str(), connect_message.size());
+    close(server_pipe_fd);
+
+    client_to_server_pipe = {(string(PIPE_ROOT_PATH) + SERVER_PIPE + CLIENT_PIPE + name + READ_PIPE),
+            (string(PIPE_ROOT_PATH) + SERVER_PIPE + CLIENT_PIPE + name + WRITE_PIPE)};
 }
 
 void Client::start() {
@@ -24,14 +33,7 @@ void Client::start() {
     int max_fd = STDIN;
     int activity;
     char received_buffer[MAX_MESSAGE_SIZE] = {0};
-    string network_pipe_read = PIPE_ROOT_PATH + string(NETWORK_PIPE_NAME) + string(READ_PIPE);
-    string network_pipe_write = PIPE_ROOT_PATH + string(NETWORK_PIPE_NAME) + string(WRITE_PIPE);
-    printf("Client is starting ...\n");
     while (true) {
-        int network_pipe_write_fd = open(network_pipe_write.c_str(), O_RDWR);
-        max_fd = network_pipe_write_fd;
-        FD_SET(network_pipe_write_fd, &copy_fds);
-
         // Add fds to set
         memcpy(&read_fds, &copy_fds, sizeof(copy_fds));
 
@@ -55,11 +57,11 @@ void Client::start() {
                     handle_command(string(received_buffer));
                 }
 
-                // Network pip message
-                else if (fd == network_pipe_write_fd) {
-                    read(fd, received_buffer, MAX_MESSAGE_SIZE);
-                    cout << "received network message: " << received_buffer << endl;
-                }
+                // // Network pip message
+                // else if (fd == network_pipe_write_fd) {
+                //     read(fd, received_buffer, MAX_MESSAGE_SIZE);
+                //     cout << "received network message: " << received_buffer << endl;
+                // }
 
                 // Pipe pipe message
                 else {
@@ -70,7 +72,6 @@ void Client::start() {
             }
         }
 
-        close(network_pipe_write_fd);
         cout << "--------------- event ---------------" << endl;
     }
 }

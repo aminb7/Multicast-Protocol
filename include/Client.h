@@ -30,4 +30,6 @@ private:
     std::string server_ip;
     std::string router_ip;
     std::string router_port;
+
+    std::pair<std::string, std::string> client_to_server_pipe;
 };

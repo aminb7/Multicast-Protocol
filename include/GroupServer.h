@@ -24,4 +24,6 @@ public:
 private:
     std::string group_name;
     std::string server_ip;
+
+    std::pair<std::string, std::string> groupserver_to_server_pipe;
 };
