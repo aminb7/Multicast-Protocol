@@ -20,18 +20,35 @@ public:
     ~Server() = default;
 
     void start();
+    std::map<int, std::string> add_clients_to_set(fd_set& fds, int& max_fd);
+    std::map<int, std::string> add_groupservers_to_set(fd_set& fds, int& max_fd);
+
+    void close_clients_fds(std::map<int, std::string> clients_fds);
+    void close_groupservers_fds(std::map<int, std::string> groupservers_fds);
+
     void handle_command(std::string command);
     void handle_connect_router(std::string router_port);
 
-    void handle_network_message(std::string pipe_message);
+    void handle_connection_message(std::string message);
     void handle_client_connect(std::string name);
-    void handle_group_server_connect(std::string name);
+    void handle_group_server_connect(std::string name, std::string ip);
+
+    void handle_client_message(std::string message, std::string client_name);
+    void handle_get_group_list(std::string client_name);
+
+    void handle_groupservers_message(std::string message);
 
 private:
     std::string server_ip;
     int server_port;
     std::pair<std::string, std::string> server_pipe;
 
+    /// Map from client name to its read and write pipes.
     std::map<std::string, std::pair<std::string, std::string>> clients_pipes;
+
+    /// Map from group name to its read and write pipes.
     std::map<std::string, std::pair<std::string, std::string>> group_servers_pipes;
+
+    /// Map from group name to its ip.
+    std::map<std::string, std::string> groups_ip;
 };

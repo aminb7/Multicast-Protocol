@@ -10,8 +10,8 @@ int main(int argc, char* argv[]) {
 
 GroupServer::GroupServer(string group_name, string server_ip)
 : group_name(group_name)
-, ip("")
-, group_ip("")
+, ip(DEFALAUT_IP)
+, group_ip(DEFALAUT_IP)
 , server_ip(server_ip) {
 }
 
@@ -107,12 +107,13 @@ void GroupServer::handle_connect_server() {
     // Send connection message to server.
     string server_pipe = PIPE_ROOT_PATH + string(server_ip) + READ_PIPE;
     int server_pipe_fd = open(server_pipe.c_str(), O_RDWR);
-    string connect_message = string(GROUPSERVER_TO_SERVER_CONNECT_MSG) + MESSAGE_DELIMITER + group_name;
+    string connect_message = string(GROUPSERVER_TO_SERVER_CONNECT_MSG) + MESSAGE_DELIMITER + group_name
+            + MESSAGE_DELIMITER + group_ip;
     write(server_pipe_fd, connect_message.c_str(), connect_message.size());
     close(server_pipe_fd);
 
-    groupserver_to_server_pipe = {(string(PIPE_ROOT_PATH) + SERVER_PIPE + GROUPSERVER_PIPE + group_name + READ_PIPE),
-            (string(PIPE_ROOT_PATH) + SERVER_PIPE + GROUPSERVER_PIPE + group_name + WRITE_PIPE)};
+    groupserver_to_server_pipe = {(string(PIPE_ROOT_PATH) + SERVER_PIPE + GROUPSERVER_PIPE + PIPE_NAME_DELIMITER + group_name + READ_PIPE),
+            (string(PIPE_ROOT_PATH) + SERVER_PIPE + GROUPSERVER_PIPE + PIPE_NAME_DELIMITER + group_name + WRITE_PIPE)};
 }
 
 void GroupServer::handle_pip_message(string pipe_message) {

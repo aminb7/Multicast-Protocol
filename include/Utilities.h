@@ -1,5 +1,6 @@
 #include <string>
 #include <iostream>
+#include <algorithm>
 #include <string>
 #include <vector>
 #include <sstream>
@@ -14,7 +15,7 @@
 #include <netinet/in.h>
 #include <errno.h>
 
-#define LOCAL_IP "127.0.0.1"
+#define DEFALAUT_IP "127.0.0.1"
 
 #define STDIN 0
 
@@ -37,6 +38,7 @@
 #define READ_WRITE 0666
 
 #define COMMAND_DELIMITER ' '
+#define PIPE_NAME_DELIMITER '_'
 #define MESSAGE_DELIMITER '%'
 
 // Server
@@ -57,6 +59,7 @@
 #define SIGN_OUT_CMD "SignOut"
 ////  Messages
 #define CLIENT_TO_SERVER_CONNECT_MSG "ClientServerConnect"
+#define GET_GROUP_LIST_MSG "GetGroupList"
 
 // GroupServer
 //// Commands

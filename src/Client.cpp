@@ -9,7 +9,7 @@ int main(int argc, char* argv[]) {
 }
 
 Client::Client(string name, string server_ip, string router_ip, string router_port)
-: client_ip(LOCAL_IP)
+: client_ip(DEFALAUT_IP)
 , client_port(8081)
 , name(name)
 , server_ip(server_ip)
@@ -22,8 +22,8 @@ Client::Client(string name, string server_ip, string router_ip, string router_po
     write(server_pipe_fd, connect_message.c_str(), connect_message.size());
     close(server_pipe_fd);
 
-    client_to_server_pipe = {(string(PIPE_ROOT_PATH) + SERVER_PIPE + CLIENT_PIPE + name + READ_PIPE),
-            (string(PIPE_ROOT_PATH) + SERVER_PIPE + CLIENT_PIPE + name + WRITE_PIPE)};
+    client_to_server_pipe = {(string(PIPE_ROOT_PATH) + SERVER_PIPE + CLIENT_PIPE + PIPE_NAME_DELIMITER + name + READ_PIPE),
+            (string(PIPE_ROOT_PATH) + SERVER_PIPE + CLIENT_PIPE + PIPE_NAME_DELIMITER + name + WRITE_PIPE)};
 }
 
 void Client::start() {
@@ -83,45 +83,57 @@ void Client::handle_command(string command) {
     if (command_parts.size() < 1)
         return;
 
-    if (command_parts[ARG0] == SET_CLIENT_IP_CMD)
+    else if (command_parts[ARG0] == SET_CLIENT_IP_CMD)
         handle_set_ip(command_parts[ARG1]);
 
-    if (command_parts[ARG0] == GET_GROUP_LIST_CMD)
+    else if (command_parts[ARG0] == GET_GROUP_LIST_CMD)
         handle_get_group_list();
 
-    if (command_parts[ARG0] == JOIN_GROUP_CMD)
+    else if (command_parts[ARG0] == JOIN_GROUP_CMD)
         handle_join_group(command_parts[ARG1]);
 
-    if (command_parts[ARG0] == LEAVE_GROUP_CMD)
+    else if (command_parts[ARG0] == LEAVE_GROUP_CMD)
         handle_leave_group(command_parts[ARG1]);
 
-    if (command_parts[ARG0] == SELECT_GROUP_CMD)
+    else if (command_parts[ARG0] == SELECT_GROUP_CMD)
         handle_select_group(command_parts[ARG1]);
 
-    if (command_parts[ARG0] == SEND_FILE_CMD)
+    else if (command_parts[ARG0] == SEND_FILE_CMD)
         handle_send_file(command_parts[ARG1], command_parts[ARG2]);
 
-    if (command_parts[ARG0] == SEND_MESSAGE_CMD)
+    else if (command_parts[ARG0] == SEND_MESSAGE_CMD)
         handle_send_message(command_parts[ARG1], command_parts[ARG2]);
 
-    if (command_parts[ARG0] == SHOW_GROUPS_CMD)
+    else if (command_parts[ARG0] == SHOW_GROUPS_CMD)
         handle_show_groups();
 
-    if (command_parts[ARG0] == SYNC_CMD)
+    else if (command_parts[ARG0] == SYNC_CMD)
         handle_sync();
 
-    if (command_parts[ARG0] == SIGN_OUT_CMD)
+    else if (command_parts[ARG0] == SIGN_OUT_CMD)
         handle_sign_out();
 
     else printf("Unknown command.\n");
 }
 
 void Client::handle_set_ip(string ip) {
-
+    this->client_ip = ip;
+    printf("Client IP changed successfuly\n");
 }
 
 void Client::handle_get_group_list() {
+    int pipe_write_fd = open(client_to_server_pipe.second.c_str(), O_RDWR);
+    string message = string(GET_GROUP_LIST_MSG);
+    write(pipe_write_fd, message.c_str(), message.size());
+    close(pipe_write_fd);
 
+    char group_list[MAX_MESSAGE_SIZE] = {0};
+    memset(group_list, 0, sizeof group_list);
+    int pipe_read_fd = open(client_to_server_pipe.first.c_str(), O_RDWR);
+    read(pipe_read_fd, group_list, MAX_MESSAGE_SIZE);
+    close(pipe_read_fd);
+
+    cout << group_list << endl;
 }
 
 void Client::handle_join_group(string group_name) {

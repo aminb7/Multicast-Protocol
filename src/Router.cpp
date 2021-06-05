@@ -77,16 +77,16 @@ void Router::handle_command(string command) {
     if (command_parts.size() < 1)
         return;
 
-    if (command_parts[ARG0] == ROUTER_TO_ROUTER_CONNECT_CMD)
+    else if (command_parts[ARG0] == ROUTER_TO_ROUTER_CONNECT_CMD)
         handle_connect_router(command_parts[ARG1], command_parts[ARG2]);
 
-    if (command_parts[ARG0] == CHANGE_COST_CMD)
+    else if (command_parts[ARG0] == CHANGE_COST_CMD)
         handle_change_cost(command_parts[ARG1], command_parts[ARG2]);
 
-    if (command_parts[ARG0] == DISCONNECT_LINK_CMD)
+    else if (command_parts[ARG0] == DISCONNECT_LINK_CMD)
         handle_disconnect(command_parts[ARG1]);
 
-    if (command_parts[ARG0] == SHOW_CMD)
+    else if (command_parts[ARG0] == SHOW_CMD)
         handle_show();
 
     else printf("Unknown command.\n");
