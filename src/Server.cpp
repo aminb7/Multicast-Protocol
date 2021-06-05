@@ -51,6 +51,7 @@ void Server::start() {
                 // Receive command from command line.
                 if (fd == 0) {
                     fgets(received_buffer, MAX_COMMAND_SIZE, stdin);
+                    received_buffer[strlen(received_buffer) - 1] = '\0';
                     cout << "received command: " << received_buffer << endl;
                     handle_command(string(received_buffer));
                 }
@@ -69,6 +70,18 @@ void Server::start() {
 }
 
 void Server::handle_command(string command) {
+    vector<string> command_parts = split(command, COMMAND_DELIMITER);
+
+    if (command_parts.size() < 1)
+        return;
+
+    if (command_parts[ARG0] == SERVER_TO_ROUTER_CONNECT_CMD)
+        handle_connect_router(command_parts[ARG1]);
+
+    else printf("Unknown command.\n");
+}
+
+void Server::handle_connect_router(string router_port) {
 
 }
 

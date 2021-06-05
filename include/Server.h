@@ -21,8 +21,9 @@ public:
 
     void start();
     void handle_command(std::string command);
-    void handle_network_message(std::string pipe_message);
+    void handle_connect_router(std::string router_port);
 
+    void handle_network_message(std::string pipe_message);
     void handle_client_connect(std::string name);
     void handle_group_server_connect(std::string name);
 

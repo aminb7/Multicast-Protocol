@@ -46,6 +46,7 @@ void Router::start() {
                 // Command line input
                 if (fd == 0) {
                     fgets(received_buffer, MAX_COMMAND_SIZE, stdin);
+                    received_buffer[strlen(received_buffer) - 1] = '\0';
                     cout << "received command: " << received_buffer << endl;
                     handle_command(string(received_buffer));
                 }
@@ -71,6 +72,39 @@ void Router::start() {
 }
 
 void Router::handle_command(string command) {
+    vector<string> command_parts = split(command, COMMAND_DELIMITER);
+
+    if (command_parts.size() < 1)
+        return;
+
+    if (command_parts[ARG0] == ROUTER_TO_ROUTER_CONNECT_CMD)
+        handle_connect_router(command_parts[ARG1], command_parts[ARG2]);
+
+    if (command_parts[ARG0] == CHANGE_COST_CMD)
+        handle_change_cost(command_parts[ARG1], command_parts[ARG2]);
+
+    if (command_parts[ARG0] == DISCONNECT_LINK_CMD)
+        handle_disconnect(command_parts[ARG1]);
+
+    if (command_parts[ARG0] == SHOW_CMD)
+        handle_show();
+
+    else printf("Unknown command.\n");
+}
+
+void Router::handle_connect_router(string router_port, string link) {
+
+}
+
+void Router::handle_change_cost(string link, string cost) {
+
+}
+
+void Router::handle_disconnect(string link) {
+
+}
+
+void Router::handle_show() {
 
 }
 

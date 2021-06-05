@@ -53,6 +53,7 @@ void Client::start() {
                 // Command line input
                 if (fd == 0) {
                     fgets(received_buffer, MAX_COMMAND_SIZE, stdin);
+                    received_buffer[strlen(received_buffer) - 1] = '\0';
                     cout << "received command: " << received_buffer << endl;
                     handle_command(string(received_buffer));
                 }
@@ -77,6 +78,81 @@ void Client::start() {
 }
 
 void Client::handle_command(string command) {
+    vector<string> command_parts = split(command, COMMAND_DELIMITER);
+
+    if (command_parts.size() < 1)
+        return;
+
+    if (command_parts[ARG0] == SET_CLIENT_IP_CMD)
+        handle_set_ip(command_parts[ARG1]);
+
+    if (command_parts[ARG0] == GET_GROUP_LIST_CMD)
+        handle_get_group_list();
+
+    if (command_parts[ARG0] == JOIN_GROUP_CMD)
+        handle_join_group(command_parts[ARG1]);
+
+    if (command_parts[ARG0] == LEAVE_GROUP_CMD)
+        handle_leave_group(command_parts[ARG1]);
+
+    if (command_parts[ARG0] == SELECT_GROUP_CMD)
+        handle_select_group(command_parts[ARG1]);
+
+    if (command_parts[ARG0] == SEND_FILE_CMD)
+        handle_send_file(command_parts[ARG1], command_parts[ARG2]);
+
+    if (command_parts[ARG0] == SEND_MESSAGE_CMD)
+        handle_send_message(command_parts[ARG1], command_parts[ARG2]);
+
+    if (command_parts[ARG0] == SHOW_GROUPS_CMD)
+        handle_show_groups();
+
+    if (command_parts[ARG0] == SYNC_CMD)
+        handle_sync();
+
+    if (command_parts[ARG0] == SIGN_OUT_CMD)
+        handle_sign_out();
+
+    else printf("Unknown command.\n");
+}
+
+void Client::handle_set_ip(string ip) {
+
+}
+
+void Client::handle_get_group_list() {
+
+}
+
+void Client::handle_join_group(string group_name) {
+
+}
+
+void Client::handle_leave_group(string group_name) {
+
+}
+
+void Client::handle_select_group(string group_name) {
+
+}
+
+void Client::handle_send_file(string file_name, string group_name) {
+
+}
+
+void Client::handle_send_message(string message, string group_name) {
+
+}
+
+void Client::handle_show_groups() {
+
+}
+
+void Client::handle_sync() {
+
+}
+
+void Client::handle_sign_out() {
 
 }
 
