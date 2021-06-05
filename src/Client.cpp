@@ -52,7 +52,7 @@ void Client::start() {
 
                 // Command line input
                 if (fd == 0) {
-                    cin >> received_buffer;
+                    fgets(received_buffer, MAX_COMMAND_SIZE, stdin);
                     cout << "received command: " << received_buffer << endl;
                     handle_command(string(received_buffer));
                 }

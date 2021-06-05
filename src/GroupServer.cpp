@@ -43,8 +43,8 @@ void GroupServer::start() {
 
                 // Command line input
                 if (fd == 0) {
-                    cin >> received_buffer;
-                    cout << "received command: " << received_buffer << endl;
+                    fgets(received_buffer, MAX_COMMAND_SIZE, stdin);
+                    cout << "received command: " << received_buffer;
                     handle_command(string(received_buffer));
                 }
 
@@ -68,7 +68,9 @@ void GroupServer::start() {
 }
 
 void GroupServer::handle_command(string command) {
+    printf("before split\n");
     vector<string> command_parts = split(command, COMMAND_DELIMITER);
+    printf("after split\n");
 
     if (command_parts[ARG0] == SET_GROUP_IP_CMD)
         handle_set_group_ip(command_parts[ARG1]);
@@ -82,7 +84,7 @@ void GroupServer::handle_command(string command) {
     else if (command_parts[ARG0] == GROUPSERVER_TO_SERVER_CONNECT_CMD)
         handle_connect_server();
 
-    else printf("Unknown command.");
+    else printf("Unknown command.\n");
 }
 
 void GroupServer::handle_set_group_ip(string group_ip) {
