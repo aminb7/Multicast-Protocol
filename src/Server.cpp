@@ -27,7 +27,6 @@ void Server::start() {
     int activity;
     char received_buffer[MAX_MESSAGE_SIZE] = {0};
     int server_pipe_fd = open(server_pipe.first.c_str(), O_RDWR);
-    printf("server_pipe: %s \n", server_pipe.first.c_str());
     printf("Server is starting ...\n");
     while (true) {
         max_fd = server_pipe_fd;

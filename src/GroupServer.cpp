@@ -13,15 +13,6 @@ GroupServer::GroupServer(string group_name, string server_ip)
 , ip("")
 , group_ip("")
 , server_ip(server_ip) {
-    // Send connection message to server.
-    string server_pipe = PIPE_ROOT_PATH + string(server_ip) + READ_PIPE;
-    int server_pipe_fd = open(server_pipe.c_str(), O_RDWR);
-    string connect_message = string(GROUPSERVER_TO_SERVER_CONNECT_MSG) + MESSAGE_DELIMITER + group_name;
-    write(server_pipe_fd, connect_message.c_str(), connect_message.size());
-    close(server_pipe_fd);
-
-    groupserver_to_server_pipe = {(string(PIPE_ROOT_PATH) + SERVER_PIPE + GROUPSERVER_PIPE + group_name + READ_PIPE),
-            (string(PIPE_ROOT_PATH) + SERVER_PIPE + GROUPSERVER_PIPE + group_name + WRITE_PIPE)};
 }
 
 void GroupServer::start() {
@@ -77,9 +68,49 @@ void GroupServer::start() {
 }
 
 void GroupServer::handle_command(string command) {
+    vector<string> command_parts = split(command, COMMAND_DELIMITER);
+
+    if (command_parts[ARG0] == SET_GROUP_IP_CMD)
+        handle_set_group_ip(command_parts[ARG1]);
+
+    else if (command_parts[ARG0] == SET_GROUPSERVER_IP_CMD)
+        handle_set_groupserver_ip(command_parts[ARG1]);
+
+    else if (command_parts[ARG0] == GROUPSERVER_TO_ROUTER_CONNECT_CMD)
+        handle_connect_router(command_parts[ARG1]);
+
+    else if (command_parts[ARG0] == GROUPSERVER_TO_SERVER_CONNECT_CMD)
+        handle_connect_server();
+
+    else printf("Unknown command.");
+}
+
+void GroupServer::handle_set_group_ip(string group_ip) {
+    this->group_ip = group_ip;
+    printf("Group IP changed successfuly\n");
+}
+
+void GroupServer::handle_set_groupserver_ip(string groupserver_ip) {
+    this->ip = groupserver_ip;
+    printf("Group server IP changed successfuly\n");
+}
+
+void GroupServer::handle_connect_router(string router_port) {
 
 }
 
+void GroupServer::handle_connect_server() {
+    // Send connection message to server.
+    string server_pipe = PIPE_ROOT_PATH + string(server_ip) + READ_PIPE;
+    int server_pipe_fd = open(server_pipe.c_str(), O_RDWR);
+    string connect_message = string(GROUPSERVER_TO_SERVER_CONNECT_MSG) + MESSAGE_DELIMITER + group_name;
+    write(server_pipe_fd, connect_message.c_str(), connect_message.size());
+    close(server_pipe_fd);
+
+    groupserver_to_server_pipe = {(string(PIPE_ROOT_PATH) + SERVER_PIPE + GROUPSERVER_PIPE + group_name + READ_PIPE),
+            (string(PIPE_ROOT_PATH) + SERVER_PIPE + GROUPSERVER_PIPE + group_name + WRITE_PIPE)};
+}
+
 void GroupServer::handle_pip_message(string pipe_message) {
-    
+   
 }

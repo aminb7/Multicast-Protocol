@@ -21,9 +21,6 @@
 #define MAX_MESSAGE_SIZE 128
 #define MAX_COMMAND_SIZE 128
 
-#define COMMAND_DELIMITER '_'
-#define MESSAGE_DELIMITER '%'
-
 #define ARG0 0
 #define ARG1 1
 #define ARG2 2
@@ -38,6 +35,9 @@
 #define CLIENT_PIPE "_c"
 #define GROUPSERVER_PIPE "_gs"
 #define READ_WRITE 0666
+
+#define COMMAND_DELIMITER ' '
+#define MESSAGE_DELIMITER '%'
 
 // Server
 ////  Commands

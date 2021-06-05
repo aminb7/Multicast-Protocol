@@ -19,6 +19,12 @@ public:
 
     void start();
     void handle_command(std::string command);
+
+    void handle_set_group_ip(std::string group_ip);
+    void handle_set_groupserver_ip(std::string groupserver_ip);
+    void handle_connect_router(std::string router_port);
+    void handle_connect_server();
+
     void handle_pip_message(std::string pipe_message);
 
 private:
