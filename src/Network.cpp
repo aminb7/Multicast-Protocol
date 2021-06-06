@@ -45,5 +45,6 @@ void Network::start() {
 }
 
 void Network::handle_message(string message) {
-
+    vector<string> message_parts = split(message, MESSAGE_DELIMITER);
+    cout << message_parts[0] << endl;
 }

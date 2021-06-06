@@ -27,6 +27,9 @@
 #define ARG2 2
 #define ARG3 3
 
+//Command prefixes
+#define ROUTER_COMMAND_PREFIX "router"
+
 /// Pipe defines
 #define NETWORK_PIPE_NAME "network_pipe"
 #define PIPE_ROOT_PATH "build/"

@@ -6,6 +6,7 @@ CFLAGS = -std=c++11 -Wall -Werror -I$(INCLUDE_DIR)
 
 OBJECTS = \
 	$(BUILD_DIR)/Utilities.o \
+	$(BUILD_DIR)/Link.o \
 
 NetworkSensitivityList = \
 	$(SRC_DIR)/Network.cpp \
@@ -26,6 +27,10 @@ GroupServerSensitivityList = \
 RouterSensitivityList = \
 	$(SRC_DIR)/Router.cpp \
 	$(INCLUDE_DIR)/Router.h \
+
+LinkSensitivityList = \
+	$(SRC_DIR)/Link.cpp \
+	$(INCLUDE_DIR)/Link.h \
 
 UtilitiesSensitivityList = \
 	$(SRC_DIR)/Utilities.cpp \
@@ -65,6 +70,9 @@ $(BUILD_DIR)/GroupServer.o: $(GroupServerSensitivityList)
 
 $(BUILD_DIR)/Router.o: $(RouterSensitivityList)
 	$(CC) $(CFLAGS) -c $(SRC_DIR)/Router.cpp -o $(BUILD_DIR)/Router.o
+
+$(BUILD_DIR)/Link.o: $(LinkSensitivityList)
+	$(CC) $(CFLAGS) -c $(SRC_DIR)/Link.cpp -o $(BUILD_DIR)/Link.o
 
 $(BUILD_DIR)/Utilities.o: $(UtilitiesSensitivityList)
 	$(CC) $(CFLAGS) -c $(SRC_DIR)/Utilities.cpp -o $(BUILD_DIR)/Utilities.o
