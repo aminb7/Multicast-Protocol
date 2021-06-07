@@ -26,19 +26,28 @@ public:
     void handle_disconnect(std::string link_name);
     void handle_show();
 
-    void handle_pip_message(std::string pipe_message);
-    void handle_router_message(std::string router_message);
+    void handle_connection_message(std::string pipe_message);
+
+    void accept_router_connect(std::string pipe_name, std::string link_name);
+    void accept_client_connect(std::string client_ip);
 
     void make_router_router_pipes(std::string router_port);
-    void accept_router_connect(std::string pipe_name, std::string link_name);
+
+    void handle_router_message(std::string router_message);
     std::map<int, std::string> add_routers_to_set(fd_set& fds, int& max_fd);
     void accept_router_change_cost(std::string link_name, std::string cost);
     void accept_router_disconnect(std::string link_name);
+
+    void handle_client_message(std::string client_message);
+    std::map<int, std::string> add_clients_to_set(fd_set& fds, int& max_fd);
 
 private:
     std::string listen_port;
 
     /// Map from link name to its link.
     std::map<std::string, Link*> links;
+
+    /// Map from client ip to its read and write pipes.
+    std::map<std::string, std::pair<std::string, std::string>> clients_pipes;
 };
 

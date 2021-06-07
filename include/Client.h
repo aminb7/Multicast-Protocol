@@ -43,4 +43,5 @@ private:
     std::string router_port;
 
     std::pair<std::string, std::string> client_to_server_pipe;
+    std::pair<std::string, std::string> client_to_router_pipe;
 };

@@ -66,18 +66,18 @@ void Server::start() {
                 }
 
                 // Receive message from clients.
-                else {
+                else if (clients_fds.find(fd) != clients_fds.end()) {
                     read(fd, received_buffer, MAX_MESSAGE_SIZE);
                     cout << "client message: " << received_buffer << endl;
                     handle_client_message(string(received_buffer), clients_fds[fd]);
                 }
 
-                // // Receive message from group servers.
-                // else if (find(groupservers_fds.begin(), groupservers_fds.end(), fd) != groupservers_fds.end()) {
-                //     read(fd, received_buffer, MAX_MESSAGE_SIZE);
-                //     cout << "group server message: " << received_buffer << endl;
-                //     handle_groupservers_message(string(received_buffer));
-                // }
+                // Receive message from group servers.
+                else if (groupservers_fds.find(fd) != groupservers_fds.end()) {
+                    read(fd, received_buffer, MAX_MESSAGE_SIZE);
+                    cout << "group server message: " << received_buffer << endl;
+                    handle_groupservers_message(string(received_buffer));
+                }
             }
         }
 

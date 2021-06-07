@@ -27,8 +27,9 @@
 #define ARG2 2
 #define ARG3 3
 
-//Command prefixes
-#define ROUTER_COMMAND_PREFIX "router"
+//Message prefixes
+#define ROUTER_MESSAGE_PREFIX "router"
+#define CLIENT_MESSAGE_PREFIX "client"
 
 /// Pipe defines
 #define NETWORK_PIPE_NAME "network_pipe"
@@ -38,6 +39,7 @@
 #define SERVER_PIPE "_s"
 #define CLIENT_PIPE "_c"
 #define GROUPSERVER_PIPE "_gs"
+#define ROUTER_PIPE "_r"
 #define READ_WRITE 0666
 
 #define COMMAND_DELIMITER ' '

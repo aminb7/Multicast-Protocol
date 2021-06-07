@@ -26,6 +26,7 @@ void Router::start() {
     printf("Router is starting ...\n");
     while (true) {
         //int network_pipe_write_fd = open(network_pipe_write.c_str(), O_RDWR);
+        map<int, string> clients_fds = add_clients_to_set(copy_fds, max_fd);
         map<int, string> routers_fds = add_routers_to_set(copy_fds, max_fd);
         string router_pipe_read = string(PIPE_ROOT_PATH) + string(listen_port);
         int router_pipe_read_fd = open(router_pipe_read.c_str(), O_RDWR);
@@ -56,23 +57,29 @@ void Router::start() {
                     handle_command(string(received_buffer));
                 }
 
-                // Router pip message
+                // Connection message
                 else if (fd == router_pipe_read_fd) {
                     read(fd, received_buffer, MAX_MESSAGE_SIZE);
-                    handle_pip_message(string(received_buffer));
+                    handle_connection_message(string(received_buffer));
                 }
 
-                // Pipe pipe message
-                else {
+                // Router message
+                else if (routers_fds.find(fd) != routers_fds.end()) {
                     read(fd, received_buffer, MAX_MESSAGE_SIZE);
-                    cout << "received pipe message: " << received_buffer << endl;
-                    handle_pip_message(string(received_buffer));
+                    handle_connection_message(string(received_buffer));
+                }
+
+                // Client message
+                else if (clients_fds.find(fd) != clients_fds.end()){
+                    read(fd, received_buffer, MAX_MESSAGE_SIZE);
+                    handle_client_message(string(received_buffer));
                 }
             }
         }
 
         close(router_pipe_read_fd);
         close_others_fds(routers_fds);
+        close_others_fds(clients_fds);
         cout << "--------------- event ---------------" << endl;
     }
 }
@@ -89,6 +96,19 @@ map<int, string> Router::add_routers_to_set(fd_set& fds, int& max_fd) {
     }
 
     return routers_fds;
+}
+
+map<int, string> Router::add_clients_to_set(fd_set& fds, int& max_fd) {
+    map<int, string> clients_fds;
+    map<string, pair<string, string>>::iterator it;
+    for (it = clients_pipes.begin(); it != clients_pipes.end(); it++) {
+        int client_fd = open(it->second.second.c_str(), O_RDWR);
+        clients_fds.insert({client_fd, it->first});
+        FD_SET(client_fd, &fds);
+        max_fd = (max_fd > client_fd) ? max_fd : client_fd;
+    }
+
+    return clients_fds;
 }
 
 void Router::close_others_fds(map<int, string> others_fds){
@@ -133,7 +153,7 @@ void Router::handle_connect_router(string router_port, string link_name) {
 
     links.insert({link_name, link});
 
-    string message = string(ROUTER_COMMAND_PREFIX) + MESSAGE_DELIMITER;
+    string message = string(ROUTER_MESSAGE_PREFIX) + MESSAGE_DELIMITER;
     message += string("connect") + MESSAGE_DELIMITER;
     message += listen_port + MESSAGE_DELIMITER;
     message += link_name;
@@ -157,7 +177,7 @@ void Router::handle_change_cost(string link_name, string cost) {
     Link* link = links.find(link_name)->second;
     string write_pipe = link->get_write_pipe();
 
-    string message = string(ROUTER_COMMAND_PREFIX) + MESSAGE_DELIMITER;
+    string message = string(ROUTER_MESSAGE_PREFIX) + MESSAGE_DELIMITER;
     message += string("change_cost") + MESSAGE_DELIMITER;
     message += link_name + MESSAGE_DELIMITER;
     message += cost;
@@ -174,7 +194,7 @@ void Router::handle_disconnect(string link_name) {
     Link* link = links.find(link_name)->second;
     string write_pipe = link->get_write_pipe();
 
-    string message = string(ROUTER_COMMAND_PREFIX) + MESSAGE_DELIMITER;
+    string message = string(ROUTER_MESSAGE_PREFIX) + MESSAGE_DELIMITER;
     message += string("disconnect") + MESSAGE_DELIMITER;
     message += link_name;
 
@@ -190,26 +210,14 @@ void Router::handle_show() {
 
 }
 
-void Router::handle_pip_message(string pipe_message) {
+void Router::handle_connection_message(string pipe_message) {
     vector<string> message_parts = split(pipe_message, MESSAGE_DELIMITER);
 
-    if (message_parts[ARG0] == ROUTER_COMMAND_PREFIX)
-        handle_router_message(pipe_message);
-}
-
-void Router::handle_router_message(string router_message) {
-    vector<string> message_parts = split(router_message, MESSAGE_DELIMITER);
-
-    if (message_parts[ARG1] == "connect")
+    if (message_parts[ARG0] == ROUTER_MESSAGE_PREFIX && message_parts[ARG1] == "connect")
         accept_router_connect(message_parts[ARG2], message_parts[ARG3]);
-    
-    else if (message_parts[ARG1] == "change_cost")
-        accept_router_change_cost(message_parts[ARG2], message_parts[ARG3]);
 
-    else if (message_parts[ARG1] == "disconnect")
-        accept_router_disconnect(message_parts[ARG2]);
-    
-    else printf("Unknown message.\n");
+    if (message_parts[ARG0] == CLIENT_MESSAGE_PREFIX && message_parts[ARG1] == "connect")
+        accept_client_connect(message_parts[ARG2]);
 }
 
 void Router::accept_router_connect(string router_port, string link_name) {
@@ -223,6 +231,32 @@ void Router::accept_router_connect(string router_port, string link_name) {
     links.insert({link_name, link});
 }
 
+void Router::accept_client_connect(string client_ip) {
+    printf("client with ip %s connects.\n", client_ip.c_str());
+
+    pair<string, string> client_pipe = {(string(PIPE_ROOT_PATH) + ROUTER_PIPE + CLIENT_PIPE + PIPE_NAME_DELIMITER + client_ip + READ_PIPE),
+            (string(PIPE_ROOT_PATH) + ROUTER_PIPE + CLIENT_PIPE + PIPE_NAME_DELIMITER + client_ip + WRITE_PIPE)};
+
+    unlink(client_pipe.first.c_str());
+	mkfifo(client_pipe.first.c_str(), READ_WRITE);
+    unlink(client_pipe.second.c_str());
+	mkfifo(client_pipe.second.c_str(), READ_WRITE);
+
+    clients_pipes.insert({client_ip, client_pipe});
+}
+
+void Router::handle_router_message(string router_message) {
+    vector<string> message_parts = split(router_message, MESSAGE_DELIMITER);
+
+    if (message_parts[ARG1] == "change_cost")
+        accept_router_change_cost(message_parts[ARG2], message_parts[ARG3]);
+
+    else if (message_parts[ARG1] == "disconnect")
+        accept_router_disconnect(message_parts[ARG2]);
+    
+    else printf("Unknown message.\n");
+}
+
 void Router::accept_router_change_cost(string link_name, string cost) {
     Link* link = links.find(link_name)->second;
     link->change_cost(stod(cost));
@@ -233,4 +267,8 @@ void Router::accept_router_change_cost(string link_name, string cost) {
 void Router::accept_router_disconnect(string link_name) {
     links.erase(link_name);
     printf("Link named %s diconnected.\n", link_name.c_str());
+}
+
+void Router::handle_client_message(std::string client_message) {
+    cout << "client message: " << client_message << endl;
 }

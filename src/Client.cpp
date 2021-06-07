@@ -18,12 +18,22 @@ Client::Client(string name, string server_ip, string router_ip, string router_po
     // Send connection message to server.
     string server_pipe = PIPE_ROOT_PATH + string(server_ip) + READ_PIPE;
     int server_pipe_fd = open(server_pipe.c_str(), O_RDWR);
-    string connect_message = string(CLIENT_TO_SERVER_CONNECT_MSG) + MESSAGE_DELIMITER + name;
-    write(server_pipe_fd, connect_message.c_str(), connect_message.size());
+    string server_connect_message = string(CLIENT_TO_SERVER_CONNECT_MSG) + MESSAGE_DELIMITER + name;
+    write(server_pipe_fd, server_connect_message.c_str(), server_connect_message.size());
     close(server_pipe_fd);
 
     client_to_server_pipe = {(string(PIPE_ROOT_PATH) + SERVER_PIPE + CLIENT_PIPE + PIPE_NAME_DELIMITER + name + READ_PIPE),
             (string(PIPE_ROOT_PATH) + SERVER_PIPE + CLIENT_PIPE + PIPE_NAME_DELIMITER + name + WRITE_PIPE)};
+
+    // Send connection message to router.
+    string router_pipe = PIPE_ROOT_PATH + string(router_port);
+    int router_pipe_fd = open(router_pipe.c_str(), O_RDWR);
+    string router_connect_message = string(CLIENT_MESSAGE_PREFIX) + MESSAGE_DELIMITER
+            + string("connect") + MESSAGE_DELIMITER + client_ip;
+    write(router_pipe_fd, router_connect_message.c_str(), router_connect_message.size());
+    close(router_pipe_fd);
+    client_to_router_pipe = {(string(PIPE_ROOT_PATH) + ROUTER_PIPE + CLIENT_PIPE + PIPE_NAME_DELIMITER + client_ip + READ_PIPE),
+            (string(PIPE_ROOT_PATH) + ROUTER_PIPE + CLIENT_PIPE + PIPE_NAME_DELIMITER + client_ip + WRITE_PIPE)};
 }
 
 void Client::start() {
