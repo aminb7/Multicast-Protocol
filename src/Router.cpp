@@ -10,7 +10,7 @@ int main(int argc, char* argv[]) {
 
 Router::Router(string listen_port)
 : listen_port(listen_port) {
-    string pipe_path = string(listen_port);
+    string pipe_path = string(PIPE_ROOT_PATH) + string(listen_port);
     unlink(pipe_path.c_str());
 	mkfifo(pipe_path.c_str(), READ_WRITE);
 }
@@ -27,10 +27,10 @@ void Router::start() {
     while (true) {
         //int network_pipe_write_fd = open(network_pipe_write.c_str(), O_RDWR);
         map<int, string> routers_fds = add_routers_to_set(copy_fds, max_fd);
-        string router_pipe_write = string(listen_port);
-        int router_pipe_write_fd = open(router_pipe_write.c_str(), O_RDWR);
-        max_fd = router_pipe_write_fd;
-        FD_SET(router_pipe_write_fd, &copy_fds);
+        string router_pipe_read = string(PIPE_ROOT_PATH) + string(listen_port);
+        int router_pipe_read_fd = open(router_pipe_read.c_str(), O_RDWR);
+        max_fd = router_pipe_read_fd;
+        FD_SET(router_pipe_read_fd, &copy_fds);
 
         // Add fds to set
         memcpy(&read_fds, &copy_fds, sizeof(copy_fds));
@@ -57,10 +57,9 @@ void Router::start() {
                 }
 
                 // Router pip message
-                else if (fd == router_pipe_write_fd) {
+                else if (fd == router_pipe_read_fd) {
                     read(fd, received_buffer, MAX_MESSAGE_SIZE);
                     handle_pip_message(string(received_buffer));
-                    cout << "received router message: " << received_buffer << endl;
                 }
 
                 // Pipe pipe message
@@ -72,7 +71,7 @@ void Router::start() {
             }
         }
 
-        close(router_pipe_write_fd);
+        close(router_pipe_read_fd);
         close_others_fds(routers_fds);
         cout << "--------------- event ---------------" << endl;
     }
@@ -82,7 +81,8 @@ map<int, string> Router::add_routers_to_set(fd_set& fds, int& max_fd) {
     map<int, string> routers_fds;
     map<string, Link*>::iterator it;
     for (it = links.begin(); it != links.end(); it++) {
-        int router_fd = open(it->second->get_write_pipe().c_str(), O_RDWR);
+        cout << "pipe: " << it->second->get_read_pipe().c_str() << endl;
+        int router_fd = open(it->second->get_read_pipe().c_str(), O_RDWR);
         routers_fds.insert({router_fd, it->first});
         FD_SET(router_fd, &fds);
         max_fd = (max_fd > router_fd) ? max_fd : router_fd;
@@ -118,21 +118,35 @@ void Router::handle_command(string command) {
     else printf("Unknown command.\n");
 }
 
-void Router::handle_connect_router(string router_port, string link) {
+void Router::handle_connect_router(string router_port, string link_name) {
     make_router_router_pipes(router_port);
-    string message = ROUTER_COMMAND_PREFIX + MESSAGE_DELIMITER;
-    message += "connect" + MESSAGE_DELIMITER;
-    message += listen_port + MESSAGE_DELIMITER;
-    message += link;
 
-    int connection_pipe_fd = open(router_port.c_str(), O_RDWR);
+    string read_pipe = string(PIPE_ROOT_PATH) + router_port + '-' + listen_port;
+    string write_pipe = string(PIPE_ROOT_PATH) + listen_port + '-' + router_port;
+
+    printf("Router with port %s connects.\n", router_port.c_str());
+
+    Link* link = new Link(link_name, read_pipe, write_pipe);
+
+    cout << "write pipe: " << write_pipe << endl;
+    cout << "read pipe: " << read_pipe << endl;
+
+    links.insert({link_name, link});
+
+    string message = string(ROUTER_COMMAND_PREFIX) + MESSAGE_DELIMITER;
+    message += string("connect") + MESSAGE_DELIMITER;
+    message += listen_port + MESSAGE_DELIMITER;
+    message += link_name;
+
+    string pipe_path = string(PIPE_ROOT_PATH) + router_port;
+    int connection_pipe_fd = open(pipe_path.c_str(), O_RDWR);
     write(connection_pipe_fd, message.c_str(), strlen(message.c_str()) + 1);
     close(connection_pipe_fd);
 }
 
 void Router::make_router_router_pipes(string router_port) {
-    string read_pipe = router_port + '-' + listen_port;
-    string write_pipe = listen_port + '-' + router_port;
+    string read_pipe = string(PIPE_ROOT_PATH) + router_port + '-' + listen_port;
+    string write_pipe = string(PIPE_ROOT_PATH) + listen_port + '-' + router_port;
     unlink(read_pipe.c_str());
 	mkfifo(read_pipe.c_str(), READ_WRITE);
     unlink(write_pipe.c_str());
@@ -143,8 +157,8 @@ void Router::handle_change_cost(string link_name, string cost) {
     Link* link = links.find(link_name)->second;
     string write_pipe = link->get_write_pipe();
 
-    string message = ROUTER_COMMAND_PREFIX + MESSAGE_DELIMITER;
-    message += "change_cost" + MESSAGE_DELIMITER;
+    string message = string(ROUTER_COMMAND_PREFIX) + MESSAGE_DELIMITER;
+    message += string("change_cost") + MESSAGE_DELIMITER;
     message += link_name + MESSAGE_DELIMITER;
     message += cost;
 
@@ -153,14 +167,15 @@ void Router::handle_change_cost(string link_name, string cost) {
     close(write_pipe_fd);
 
     link->change_cost(stod(cost));
+    printf("Cost of link named %s changed to %s.\n", link_name.c_str(), cost.c_str());
 }
 
 void Router::handle_disconnect(string link_name) {
     Link* link = links.find(link_name)->second;
     string write_pipe = link->get_write_pipe();
 
-    string message = ROUTER_COMMAND_PREFIX + MESSAGE_DELIMITER;
-    message += "disconnect" + MESSAGE_DELIMITER;
+    string message = string(ROUTER_COMMAND_PREFIX) + MESSAGE_DELIMITER;
+    message += string("disconnect") + MESSAGE_DELIMITER;
     message += link_name;
 
     int write_pipe_fd = open(write_pipe.c_str(), O_RDWR);
@@ -168,6 +183,7 @@ void Router::handle_disconnect(string link_name) {
     close(write_pipe_fd);
 
     links.erase(link_name);
+    printf("Link named %s diconnected.\n", link_name.c_str());
 }
 
 void Router::handle_show() {
@@ -192,13 +208,17 @@ void Router::handle_router_message(string router_message) {
 
     else if (message_parts[ARG1] == "disconnect")
         accept_router_disconnect(message_parts[ARG2]);
+    
+    else printf("Unknown message.\n");
 }
 
 void Router::accept_router_connect(string router_port, string link_name) {
-    string read_pipe = router_port + '-' + listen_port;
-    string write_pipe = listen_port + '-' + router_port;
+    string read_pipe = string(PIPE_ROOT_PATH) + router_port + '-' + listen_port;
+    string write_pipe = string(PIPE_ROOT_PATH) + listen_port + '-' + router_port;
 
-    Link * link = new Link(link_name, read_pipe, write_pipe);
+    printf("Router with port %s connects.\n", router_port.c_str());
+
+    Link* link = new Link(link_name, read_pipe, write_pipe);
 
     links.insert({link_name, link});
 }
@@ -206,8 +226,11 @@ void Router::accept_router_connect(string router_port, string link_name) {
 void Router::accept_router_change_cost(string link_name, string cost) {
     Link* link = links.find(link_name)->second;
     link->change_cost(stod(cost));
+
+    printf("Cost of link named %s changed to %s.\n", link_name.c_str(), cost.c_str());
 }
 
 void Router::accept_router_disconnect(string link_name) {
     links.erase(link_name);
+    printf("Link named %s diconnected.\n", link_name.c_str());
 }

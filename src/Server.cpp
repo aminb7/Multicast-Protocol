@@ -154,7 +154,7 @@ void Server::handle_connection_message(string message) {
 }
 
 void Server::handle_client_connect(string name) {
-    printf("Client with name %s connects\n", name.c_str());
+    printf("Client with name %s connects.\n", name.c_str());
 
     pair<string, string> client_pipe = {(string(PIPE_ROOT_PATH) + SERVER_PIPE + CLIENT_PIPE + PIPE_NAME_DELIMITER + name + READ_PIPE),
             (string(PIPE_ROOT_PATH) + SERVER_PIPE + CLIENT_PIPE + PIPE_NAME_DELIMITER + name + WRITE_PIPE)};
@@ -168,7 +168,7 @@ void Server::handle_client_connect(string name) {
 }
 
 void Server::handle_group_server_connect(string name, string ip) {
-    printf("Group server with name %s and ip %s connects\n", name.c_str(), ip.c_str());
+    printf("Group server with name %s and ip %s connects.\n", name.c_str(), ip.c_str());
 
     pair<string, string> group_server_pipe = {(string(PIPE_ROOT_PATH) + SERVER_PIPE + GROUPSERVER_PIPE + PIPE_NAME_DELIMITER + PIPE_NAME_DELIMITER + name + READ_PIPE),
             (string(PIPE_ROOT_PATH) + SERVER_PIPE + GROUPSERVER_PIPE + PIPE_NAME_DELIMITER + name + WRITE_PIPE)};

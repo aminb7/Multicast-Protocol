@@ -76,7 +76,7 @@
 // Router Commands
 #define ROUTER_TO_ROUTER_CONNECT_CMD "ConnectRouter"
 #define CHANGE_COST_CMD "ChangeCost"
-#define DISCONNECT_LINK_CMD "DisconnectLink"
+#define DISCONNECT_LINK_CMD "Disconnect"
 #define SHOW_CMD "Show"
 //// Messages
 

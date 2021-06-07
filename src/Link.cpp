@@ -8,6 +8,10 @@ Link::Link(std::string name, std::string read_pipe, std::string write_pipe) {
     this->cost = 0;
 }
 
+std::string Link::get_read_pipe() {
+    return read_pipe;
+}
+
 std::string Link::get_write_pipe() {
     return write_pipe;
 }
