@@ -48,7 +48,6 @@ void Router::start() {
         for (int fd = 0; fd <= max_fd  &&  ready_sockets > 0; ++fd) {
             if (FD_ISSET(fd, &read_fds)) {
                 memset(received_buffer, 0, sizeof received_buffer);
-
                 // Command line input
                 if (fd == 0) {
                     fgets(received_buffer, MAX_COMMAND_SIZE, stdin);
@@ -66,7 +65,7 @@ void Router::start() {
                 // Router message
                 else if (routers_fds.find(fd) != routers_fds.end()) {
                     read(fd, received_buffer, MAX_MESSAGE_SIZE);
-                    handle_connection_message(string(received_buffer));
+                    cout << "received router message: " << received_buffer << endl;
                 }
 
                 // Client message
@@ -88,7 +87,6 @@ map<int, string> Router::add_routers_to_set(fd_set& fds, int& max_fd) {
     map<int, string> routers_fds;
     map<string, Link*>::iterator it;
     for (it = links.begin(); it != links.end(); it++) {
-        cout << "pipe: " << it->second->get_read_pipe().c_str() << endl;
         int router_fd = open(it->second->get_read_pipe().c_str(), O_RDWR);
         routers_fds.insert({router_fd, it->first});
         FD_SET(router_fd, &fds);
@@ -147,9 +145,6 @@ void Router::handle_connect_router(string router_port, string link_name) {
     printf("Router with port %s connects.\n", router_port.c_str());
 
     Link* link = new Link(link_name, read_pipe, write_pipe);
-
-    cout << "write pipe: " << write_pipe << endl;
-    cout << "read pipe: " << read_pipe << endl;
 
     links.insert({link_name, link});
 
