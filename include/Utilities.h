@@ -30,6 +30,7 @@
 //Message prefixes
 #define ROUTER_MESSAGE_PREFIX "router"
 #define CLIENT_MESSAGE_PREFIX "client"
+#define GROUPSERVER_MESSAGE_PREFIX "groupserver"
 
 /// Pipe defines
 #define NETWORK_PIPE_NAME "network_pipe"

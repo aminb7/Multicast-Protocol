@@ -25,13 +25,14 @@ void Router::start() {
 
     printf("Router is starting ...\n");
     while (true) {
-        //int network_pipe_write_fd = open(network_pipe_write.c_str(), O_RDWR);
-        map<int, string> clients_fds = add_clients_to_set(copy_fds, max_fd);
-        map<int, string> routers_fds = add_routers_to_set(copy_fds, max_fd);
         string router_pipe_read = string(PIPE_ROOT_PATH) + string(listen_port);
         int router_pipe_read_fd = open(router_pipe_read.c_str(), O_RDWR);
-        max_fd = router_pipe_read_fd;
         FD_SET(router_pipe_read_fd, &copy_fds);
+        max_fd = router_pipe_read_fd;
+
+        map<int, string> clients_fds = add_clients_to_set(copy_fds, max_fd);
+        map<int, string> groupservers_fds = add_groupservers_to_set(copy_fds, max_fd);
+        map<int, string> routers_fds = add_routers_to_set(copy_fds, max_fd);
 
         // Add fds to set
         memcpy(&read_fds, &copy_fds, sizeof(copy_fds));
@@ -73,12 +74,19 @@ void Router::start() {
                     read(fd, received_buffer, MAX_MESSAGE_SIZE);
                     handle_client_message(string(received_buffer));
                 }
+
+                // Groupserver message
+                else if (groupservers_fds.find(fd) != groupservers_fds.end()){
+                    read(fd, received_buffer, MAX_MESSAGE_SIZE);
+                    handle_groupserver_message(string(received_buffer));
+                }
             }
         }
 
         close(router_pipe_read_fd);
-        close_others_fds(routers_fds);
         close_others_fds(clients_fds);
+        close_others_fds(groupservers_fds);
+        close_others_fds(routers_fds);
         cout << "--------------- event ---------------" << endl;
     }
 }
@@ -107,6 +115,19 @@ map<int, string> Router::add_clients_to_set(fd_set& fds, int& max_fd) {
     }
 
     return clients_fds;
+}
+
+map<int, string> Router::add_groupservers_to_set(fd_set& fds, int& max_fd) {
+    map<int, string> groupservers_fds;
+    map<string, pair<string, string>>::iterator it;
+    for (it = group_servers_pipes.begin(); it != group_servers_pipes.end(); it++) {
+        int groupserver_fd = open(it->second.second.c_str(), O_RDWR);
+        groupservers_fds.insert({groupserver_fd, it->first});
+        FD_SET(groupserver_fd, &fds);
+        max_fd = (max_fd > groupserver_fd) ? max_fd : groupserver_fd;
+    }
+
+    return groupservers_fds;
 }
 
 void Router::close_others_fds(map<int, string> others_fds){
@@ -159,6 +180,30 @@ void Router::handle_connect_router(string router_port, string link_name) {
     close(connection_pipe_fd);
 }
 
+void Router::handle_connection_message(string pipe_message) {
+    vector<string> message_parts = split(pipe_message, MESSAGE_DELIMITER);
+
+    if (message_parts[ARG0] == ROUTER_MESSAGE_PREFIX && message_parts[ARG1] == "connect")
+        accept_router_connect(message_parts[ARG2], message_parts[ARG3]);
+
+    if (message_parts[ARG0] == CLIENT_MESSAGE_PREFIX && message_parts[ARG1] == "connect")
+        accept_client_connect(message_parts[ARG2]);
+
+    if (message_parts[ARG0] == GROUPSERVER_MESSAGE_PREFIX && message_parts[ARG1] == "connect")
+        accept_groupserver_connect(message_parts[ARG2]);
+}
+
+void Router::accept_router_connect(string router_port, string link_name) {
+    string read_pipe = string(PIPE_ROOT_PATH) + router_port + '-' + listen_port;
+    string write_pipe = string(PIPE_ROOT_PATH) + listen_port + '-' + router_port;
+
+    printf("Router with port %s connects.\n", router_port.c_str());
+
+    Link* link = new Link(link_name, read_pipe, write_pipe);
+
+    links.insert({link_name, link});
+}
+
 void Router::make_router_router_pipes(string router_port) {
     string read_pipe = string(PIPE_ROOT_PATH) + router_port + '-' + listen_port;
     string write_pipe = string(PIPE_ROOT_PATH) + listen_port + '-' + router_port;
@@ -166,6 +211,34 @@ void Router::make_router_router_pipes(string router_port) {
 	mkfifo(read_pipe.c_str(), READ_WRITE);
     unlink(write_pipe.c_str());
 	mkfifo(write_pipe.c_str(), READ_WRITE);
+}
+
+void Router::accept_client_connect(string client_ip) {
+    printf("client with ip %s connects.\n", client_ip.c_str());
+
+    pair<string, string> client_pipe = {(string(PIPE_ROOT_PATH) + ROUTER_PIPE + CLIENT_PIPE + PIPE_NAME_DELIMITER + client_ip + READ_PIPE),
+            (string(PIPE_ROOT_PATH) + ROUTER_PIPE + CLIENT_PIPE + PIPE_NAME_DELIMITER + client_ip + WRITE_PIPE)};
+
+    unlink(client_pipe.first.c_str());
+	mkfifo(client_pipe.first.c_str(), READ_WRITE);
+    unlink(client_pipe.second.c_str());
+	mkfifo(client_pipe.second.c_str(), READ_WRITE);
+
+    clients_pipes.insert({client_ip, client_pipe});
+}
+
+void Router::accept_groupserver_connect(string groupserver_ip) {
+    printf("groupserver with ip %s connects.\n", groupserver_ip.c_str());
+
+    pair<string, string> group_server_pipe = {(string(PIPE_ROOT_PATH) + ROUTER_PIPE + GROUPSERVER_PIPE + PIPE_NAME_DELIMITER + PIPE_NAME_DELIMITER + groupserver_ip + READ_PIPE),
+            (string(PIPE_ROOT_PATH) + ROUTER_PIPE + GROUPSERVER_PIPE + PIPE_NAME_DELIMITER + groupserver_ip + WRITE_PIPE)};
+
+    unlink(group_server_pipe.first.c_str());
+	mkfifo(group_server_pipe.first.c_str(), READ_WRITE);
+    unlink(group_server_pipe.second.c_str());
+	mkfifo(group_server_pipe.second.c_str(), READ_WRITE);
+
+    group_servers_pipes.insert({groupserver_ip, group_server_pipe});
 }
 
 void Router::handle_change_cost(string link_name, string cost) {
@@ -205,41 +278,6 @@ void Router::handle_show() {
 
 }
 
-void Router::handle_connection_message(string pipe_message) {
-    vector<string> message_parts = split(pipe_message, MESSAGE_DELIMITER);
-
-    if (message_parts[ARG0] == ROUTER_MESSAGE_PREFIX && message_parts[ARG1] == "connect")
-        accept_router_connect(message_parts[ARG2], message_parts[ARG3]);
-
-    if (message_parts[ARG0] == CLIENT_MESSAGE_PREFIX && message_parts[ARG1] == "connect")
-        accept_client_connect(message_parts[ARG2]);
-}
-
-void Router::accept_router_connect(string router_port, string link_name) {
-    string read_pipe = string(PIPE_ROOT_PATH) + router_port + '-' + listen_port;
-    string write_pipe = string(PIPE_ROOT_PATH) + listen_port + '-' + router_port;
-
-    printf("Router with port %s connects.\n", router_port.c_str());
-
-    Link* link = new Link(link_name, read_pipe, write_pipe);
-
-    links.insert({link_name, link});
-}
-
-void Router::accept_client_connect(string client_ip) {
-    printf("client with ip %s connects.\n", client_ip.c_str());
-
-    pair<string, string> client_pipe = {(string(PIPE_ROOT_PATH) + ROUTER_PIPE + CLIENT_PIPE + PIPE_NAME_DELIMITER + client_ip + READ_PIPE),
-            (string(PIPE_ROOT_PATH) + ROUTER_PIPE + CLIENT_PIPE + PIPE_NAME_DELIMITER + client_ip + WRITE_PIPE)};
-
-    unlink(client_pipe.first.c_str());
-	mkfifo(client_pipe.first.c_str(), READ_WRITE);
-    unlink(client_pipe.second.c_str());
-	mkfifo(client_pipe.second.c_str(), READ_WRITE);
-
-    clients_pipes.insert({client_ip, client_pipe});
-}
-
 void Router::handle_router_message(string router_message) {
     vector<string> message_parts = split(router_message, MESSAGE_DELIMITER);
 
@@ -266,4 +304,8 @@ void Router::accept_router_disconnect(string link_name) {
 
 void Router::handle_client_message(std::string client_message) {
     cout << "client message: " << client_message << endl;
+}
+
+void Router::handle_groupserver_message(std::string client_message) {
+    cout << "groupserver message: " << client_message << endl;
 }

@@ -25,6 +25,8 @@ void GroupServer::start() {
 
     printf("Group server is starting ...\n");
     while (true) {
+        map<int, string> routers_fds = add_routers_to_set(copy_fds, max_fd);
+
         // Add fds to set
         memcpy(&read_fds, &copy_fds, sizeof(copy_fds));
 
@@ -49,11 +51,11 @@ void GroupServer::start() {
                     handle_command(string(received_buffer));
                 }
 
-                // // Network pip message
-                // else if (fd == network_pipe_write_fd) {
-                //     read(fd, received_buffer, MAX_MESSAGE_SIZE);
-                //     cout << "received network message: " << received_buffer << endl;
-                // }
+                // Router message
+                else if (routers_fds.find(fd) != routers_fds.end()) {
+                    read(fd, received_buffer, MAX_MESSAGE_SIZE);
+                    cout << "received router message: " << received_buffer << endl;
+                }
 
                 // Pipe pipe message
                 else {
@@ -64,8 +66,28 @@ void GroupServer::start() {
             }
         }
 
+        close_others_fds(routers_fds);
         cout << "--------------- event ---------------" << endl;
     }
+}
+
+map<int, string> GroupServer::add_routers_to_set(fd_set& fds, int& max_fd) {
+    map<int, string> routers_fds;
+    map<string, pair<string, string>>::iterator it;
+    for (it = groupserver_to_routers_pipes.begin(); it != groupserver_to_routers_pipes.end(); it++) {
+        int router_fd = open(it->second.first.c_str(), O_RDWR);
+        routers_fds.insert({router_fd, it->first});
+        FD_SET(router_fd, &fds);
+        max_fd = (max_fd > router_fd) ? max_fd : router_fd;
+    }
+
+    return routers_fds;
+}
+
+void GroupServer::close_others_fds(map<int, string> others_fds) {
+    map<int, string>::iterator it;
+    for (it = others_fds.begin(); it != others_fds.end(); it++)
+        close(it->first);
 }
 
 void GroupServer::handle_command(string command) {
@@ -100,7 +122,17 @@ void GroupServer::handle_set_groupserver_ip(string groupserver_ip) {
 }
 
 void GroupServer::handle_connect_router(string router_port) {
-
+    // Send connection message to router.
+    string router_pipe = PIPE_ROOT_PATH + string(router_port);
+    int router_pipe_fd = open(router_pipe.c_str(), O_RDWR);
+    string router_connect_message = string(GROUPSERVER_MESSAGE_PREFIX) + MESSAGE_DELIMITER
+            + string("connect") + MESSAGE_DELIMITER + group_ip;
+    write(router_pipe_fd, router_connect_message.c_str(), router_connect_message.size());
+    close(router_pipe_fd);
+    pair<string, string> groupserver_to_router_pipe = {(string(PIPE_ROOT_PATH) + ROUTER_PIPE + GROUPSERVER_PIPE + PIPE_NAME_DELIMITER + group_ip + READ_PIPE),
+            (string(PIPE_ROOT_PATH) + ROUTER_PIPE + GROUPSERVER_PIPE + PIPE_NAME_DELIMITER + group_ip + WRITE_PIPE)};
+    
+    groupserver_to_routers_pipes.insert({router_port, groupserver_to_router_pipe});
 }
 
 void GroupServer::handle_connect_server() {

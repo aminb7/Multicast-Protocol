@@ -30,6 +30,7 @@ public:
 
     void accept_router_connect(std::string pipe_name, std::string link_name);
     void accept_client_connect(std::string client_ip);
+    void accept_groupserver_connect(std::string groupserver_ip);
 
     void make_router_router_pipes(std::string router_port);
 
@@ -41,6 +42,9 @@ public:
     void handle_client_message(std::string client_message);
     std::map<int, std::string> add_clients_to_set(fd_set& fds, int& max_fd);
 
+    void handle_groupserver_message(std::string groupserver_message);
+    std::map<int, std::string> add_groupservers_to_set(fd_set& fds, int& max_fd);
+
 private:
     std::string listen_port;
 
@@ -49,5 +53,8 @@ private:
 
     /// Map from client ip to its read and write pipes.
     std::map<std::string, std::pair<std::string, std::string>> clients_pipes;
+
+    // Map from group ip to its read and write pipes.
+    std::map<std::string, std::pair<std::string, std::string>> group_servers_pipes;
 };
 

@@ -44,6 +44,10 @@ void Client::start() {
     int activity;
     char received_buffer[MAX_MESSAGE_SIZE] = {0};
     while (true) {
+        int router_pipe_fd = open(client_to_router_pipe.first.c_str(), O_RDWR);
+        FD_SET(router_pipe_fd, &copy_fds);
+        max_fd = router_pipe_fd;
+
         // Add fds to set
         memcpy(&read_fds, &copy_fds, sizeof(copy_fds));
 
@@ -68,17 +72,10 @@ void Client::start() {
                     handle_command(string(received_buffer));
                 }
 
-                // // Network pip message
-                // else if (fd == network_pipe_write_fd) {
-                //     read(fd, received_buffer, MAX_MESSAGE_SIZE);
-                //     cout << "received network message: " << received_buffer << endl;
-                // }
-
-                // Pipe pipe message
-                else {
+                // Router message
+                if (fd == router_pipe_fd) {
                     read(fd, received_buffer, MAX_MESSAGE_SIZE);
-                    cout << "received pipe message: " << received_buffer << endl;
-                    handle_pip_message(string(received_buffer));
+                    cout << "received router message: " << received_buffer << endl;
                 }
             }
         }
