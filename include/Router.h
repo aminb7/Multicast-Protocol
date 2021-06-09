@@ -58,5 +58,7 @@ private:
 
     // Map from group ip to its read and write pipes.
     std::map<std::string, std::pair<std::string, std::string>> group_servers_pipes;
+
+    std::map<std::string, std::vector<std::string>> multicast_table;
 };
 

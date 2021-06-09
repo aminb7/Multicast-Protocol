@@ -250,3 +250,11 @@ void Server::handle_leave_group(std::string client_name, std::string group_name)
 void Server::handle_groupservers_message(string message) {
 
 }
+
+void Server::send_update_join_command(string client_name, string group_name) {
+    string group_ip = groups_ip[group_name];
+}
+
+void Server::send_update_leave_command(string client_name, string group_name) {
+    string group_ip = groups_ip[group_name];
+}
