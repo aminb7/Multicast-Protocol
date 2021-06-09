@@ -236,7 +236,6 @@ void Server::handle_join_group(std::string client_name, std::string group_name){
     else
         clients_groups[client_name].push_back(group_name);
 
-    cout << "groups size: " << clients_groups[client_name].size() << endl;
     printf("Client named %s joined group named %s.\n", client_name.c_str(), group_name.c_str());
 }
 
@@ -245,7 +244,6 @@ void Server::handle_leave_group(std::string client_name, std::string group_name)
         clients_groups[client_name].erase(remove(clients_groups[client_name].begin(),
                 clients_groups[client_name].end(), group_name), clients_groups[client_name].end());
 
-    cout << "groups size: " << clients_groups[client_name].size() << endl;
     printf("Client named %s leaved group named %s.\n", client_name.c_str(), group_name.c_str());
 }
 
