@@ -45,6 +45,12 @@ public:
     void handle_groupserver_message(std::string groupserver_message);
     std::map<int, std::string> add_groupservers_to_set(fd_set& fds, int& max_fd);
 
+    void handle_join_update(std::string client_ip, std::string group_ip);
+
+    void handle_leave_update(std::string client_ip, std::string group_ip);
+
+    std::pair<std::string, std::string> find_destination(std::string client_ip);
+
 private:
     std::string listen_port;
 
@@ -56,9 +62,13 @@ private:
     /// Map from client ip to its read and write pipes.
     std::map<std::string, std::pair<std::string, std::string>> clients_pipes;
 
+    std::map<std::string, std::pair<std::string, std::string>> routers_pipes;
+
     // Map from group ip to its read and write pipes.
     std::map<std::string, std::pair<std::string, std::string>> group_servers_pipes;
 
     std::map<std::string, std::vector<std::string>> multicast_table;
+
+    std::vector<std::pair<std::string, std::string>> normal_table;
 };
 

@@ -23,6 +23,11 @@ Router::Router(string listen_port, string server_ip)
 
     router_to_server_pipe = {(string(PIPE_ROOT_PATH) + SERVER_PIPE + CLIENT_PIPE + PIPE_NAME_DELIMITER + listen_port + READ_PIPE),
             (string(PIPE_ROOT_PATH) + SERVER_PIPE + CLIENT_PIPE + PIPE_NAME_DELIMITER + listen_port + WRITE_PIPE)};
+
+    //TODO: Read these info from file
+    normal_table.push_back(make_pair("1.1.1.1", "8420"));
+    normal_table.push_back(make_pair("1.1.1.2", "8430"));
+    normal_table.push_back(make_pair("8420", "8430"));
 }
 
 void Router::start() {
@@ -318,4 +323,53 @@ void Router::handle_client_message(std::string client_message) {
 
 void Router::handle_groupserver_message(std::string client_message) {
     cout << "groupserver message: " << client_message << endl;
+}
+
+void Router::handle_join_update(string client_ip, string group_ip) {
+    map<string, vector<string>>::iterator it = multicast_table.find(group_ip); 
+    pair<string, string> dest = find_destination(client_ip);
+    string value = dest.first + "-" + dest.second;
+    if (it != multicast_table.end()) {
+        it->second.push_back(value);
+    }
+    else {
+        multicast_table.insert({group_ip, vector<string> {value}});
+    }
+}
+
+void Router::handle_leave_update(string client_ip, string group_ip) {
+    map<string, vector<string>>::iterator it = multicast_table.find(group_ip); 
+    pair<string, string> dest = find_destination(client_ip);
+    string value = dest.first + "-" + dest.second;
+    it->second.erase(std::find(it->second.begin(), it->second.end(), value));
+}
+
+pair<string, string> Router::find_destination(string client_ip) {
+    string target = client_ip;
+    while (true) {
+        for (size_t i = 0; i < normal_table.size(); i++) {
+            if ((normal_table[i].first == target && 
+                normal_table[i].second == listen_port) ||
+                (normal_table[i].first == listen_port && 
+                normal_table[i].second == target)) {
+                if (target == client_ip)
+                    return make_pair(target, "c");
+                else 
+                    return make_pair(target, "i");
+            }
+            else if (normal_table[i].first == target ||
+                    normal_table[i].second == target) {
+                string router_ip = normal_table[i].second;
+                if (router_ip == target)
+                    string router_ip = normal_table[i].first;
+                    
+                map<string, pair<string, string>>::iterator it = 
+                                            routers_pipes.find(router_ip); 
+                if (it != routers_pipes.end())
+                    return make_pair(target, "i");
+                target = router_ip;
+                break;
+            }
+        }
+    } 
 }

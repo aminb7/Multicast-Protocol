@@ -18,7 +18,7 @@ Client::Client(string name, string server_ip, string router_ip, string router_po
     // Send connection message to server.
     string server_pipe = PIPE_ROOT_PATH + string(server_ip) + READ_PIPE;
     int server_pipe_fd = open(server_pipe.c_str(), O_RDWR);
-    string server_connect_message = string(CLIENT_TO_SERVER_CONNECT_MSG) + MESSAGE_DELIMITER + name;
+    string server_connect_message = string(CLIENT_TO_SERVER_CONNECT_MSG) + MESSAGE_DELIMITER + name + MESSAGE_DELIMITER + client_ip;
     write(server_pipe_fd, server_connect_message.c_str(), server_connect_message.size());
     close(server_pipe_fd);
 
