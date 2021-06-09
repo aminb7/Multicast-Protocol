@@ -55,9 +55,9 @@
 ////  Commands
 #define SET_CLIENT_IP_CMD "SetIp"
 #define GET_GROUP_LIST_CMD "GetGroupList"
-#define JOIN_GROUP_CMD "JoinGroupList"
-#define LEAVE_GROUP_CMD "LeaveGroupList"
-#define SELECT_GROUP_CMD "SelectGroupList"
+#define JOIN_GROUP_CMD "JoinGroup"
+#define LEAVE_GROUP_CMD "LeaveGroup"
+#define SELECT_GROUP_CMD "SelectGroup"
 #define SEND_FILE_CMD "SendFile"
 #define SEND_MESSAGE_CMD "SendMessage"
 #define SHOW_GROUPS_CMD "ShowGroups"
@@ -66,6 +66,8 @@
 ////  Messages
 #define CLIENT_TO_SERVER_CONNECT_MSG "ClientServerConnect"
 #define GET_GROUP_LIST_MSG "GetGroupList"
+#define JOIN_GROUP_MSG "JoinGroup"
+#define LEAVE_GROUP_MSG "LeaveGroup"
 
 // GroupServer
 //// Commands

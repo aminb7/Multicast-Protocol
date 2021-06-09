@@ -36,6 +36,8 @@ public:
 
     void handle_client_message(std::string message, std::string client_name);
     void handle_get_group_list(std::string client_name);
+    void handle_join_group(std::string client_name, std::string group_name);
+    void handle_leave_group(std::string client_name, std::string group_name);
 
     void handle_groupservers_message(std::string message);
 
@@ -46,6 +48,9 @@ private:
 
     /// Map from client name to its read and write pipes.
     std::map<std::string, std::pair<std::string, std::string>> clients_pipes;
+
+    /// Map from client name to its groups.
+    std::map<std::string, std::vector<std::string>> clients_groups;
 
     /// Map from group name to its read and write pipes.
     std::map<std::string, std::pair<std::string, std::string>> group_servers_pipes;

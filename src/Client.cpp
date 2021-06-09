@@ -144,11 +144,21 @@ void Client::handle_get_group_list() {
 }
 
 void Client::handle_join_group(string group_name) {
+    int pipe_write_fd = open(client_to_server_pipe.second.c_str(), O_RDWR);
+    string message = string(JOIN_GROUP_MSG) + MESSAGE_DELIMITER + group_name;
+    write(pipe_write_fd, message.c_str(), message.size());
+    close(pipe_write_fd);
 
+    groups.push_back(group_name);
 }
 
 void Client::handle_leave_group(string group_name) {
+    int pipe_write_fd = open(client_to_server_pipe.second.c_str(), O_RDWR);
+    string message = string(LEAVE_GROUP_MSG) + MESSAGE_DELIMITER + group_name;
+    write(pipe_write_fd, message.c_str(), message.size());
+    close(pipe_write_fd);
 
+    groups.erase(remove(groups.begin(), groups.end(), group_name), groups.end());
 }
 
 void Client::handle_select_group(string group_name) {
@@ -164,7 +174,10 @@ void Client::handle_send_message(string message, string group_name) {
 }
 
 void Client::handle_show_groups() {
-
+    string result = "";
+    for(string group : groups)
+        result += group + " ";
+    printf("Joined groups: %s\n", result.c_str());
 }
 
 void Client::handle_sync() {

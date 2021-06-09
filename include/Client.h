@@ -42,6 +42,8 @@ private:
     std::string router_ip;
     std::string router_port;
 
+    std::vector<std::string> groups;
+
     std::pair<std::string, std::string> client_to_server_pipe;
     std::pair<std::string, std::string> client_to_router_pipe;
 };

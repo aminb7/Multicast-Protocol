@@ -206,6 +206,12 @@ void Server::handle_client_message(string message, string client_name) {
     if (message_parts[ARG0] == GET_GROUP_LIST_MSG)
         handle_get_group_list(client_name);
 
+    else if (message_parts[ARG0] == JOIN_GROUP_MSG)
+        handle_join_group(client_name, message_parts[ARG1]);
+
+    else if (message_parts[ARG0] == LEAVE_GROUP_MSG)
+        handle_leave_group(client_name, message_parts[ARG1]);
+
     else printf("Unknown Message\n");
 }
 
@@ -218,6 +224,29 @@ void Server::handle_get_group_list(string client_name) {
     int client_fd = open(clients_pipes[client_name].first.c_str(), O_RDWR);
     write(client_fd, group_list.c_str(), group_list.size());
     close(client_fd);
+}
+
+void Server::handle_join_group(std::string client_name, std::string group_name){
+    if (group_servers_pipes.find(group_name) == group_servers_pipes.end()) {
+        printf("Group does not exist.\n");
+        return;
+    }
+    else if (clients_groups.find(client_name) == clients_groups.end())
+        clients_groups.insert({client_name, {group_name}});
+    else
+        clients_groups[client_name].push_back(group_name);
+
+    cout << "groups size: " << clients_groups[client_name].size() << endl;
+    printf("Client named %s joined group named %s.\n", client_name.c_str(), group_name.c_str());
+}
+
+void Server::handle_leave_group(std::string client_name, std::string group_name){
+    if (clients_groups.find(client_name) != clients_groups.end() && clients_groups[client_name].size() > 0)
+        clients_groups[client_name].erase(remove(clients_groups[client_name].begin(),
+                clients_groups[client_name].end(), group_name), clients_groups[client_name].end());
+
+    cout << "groups size: " << clients_groups[client_name].size() << endl;
+    printf("Client named %s leaved group named %s.\n", client_name.c_str(), group_name.c_str());
 }
 
 void Server::handle_groupservers_message(string message) {
