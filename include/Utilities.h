@@ -82,6 +82,7 @@
 #define DISCONNECT_LINK_CMD "Disconnect"
 #define SHOW_CMD "Show"
 //// Messages
+#define ROUTER_TO_SERVER_CONNECT_MSG "RouterServerConnect"
 
 
 int create_socket(std::string ip, int port);

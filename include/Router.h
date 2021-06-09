@@ -15,7 +15,7 @@
 class Router
 {
 public:
-    Router(std::string listen_port);
+    Router(std::string listen_port, std::string server_ip);
     ~Router() = default;
 
     void start();
@@ -50,6 +50,8 @@ private:
 
     /// Map from link name to its link.
     std::map<std::string, Link*> links;
+
+    std::pair<std::string, std::string> router_to_server_pipe;
 
     /// Map from client ip to its read and write pipes.
     std::map<std::string, std::pair<std::string, std::string>> clients_pipes;

@@ -3,16 +3,26 @@
 using namespace std;
 
 int main(int argc, char* argv[]) {
-    Router router(argv[1]);
+    Router router(argv[1], argv[2]);
     router.start();
     return 0;
 }
 
-Router::Router(string listen_port)
+Router::Router(string listen_port, string server_ip)
 : listen_port(listen_port) {
     string pipe_path = string(PIPE_ROOT_PATH) + string(listen_port);
     unlink(pipe_path.c_str());
 	mkfifo(pipe_path.c_str(), READ_WRITE);
+
+    // Send connection message to server.
+    string server_pipe = PIPE_ROOT_PATH + string(server_ip) + READ_PIPE;
+    int server_pipe_fd = open(server_pipe.c_str(), O_RDWR);
+    string server_connect_message = string(ROUTER_TO_SERVER_CONNECT_MSG) + MESSAGE_DELIMITER + listen_port;
+    write(server_pipe_fd, server_connect_message.c_str(), server_connect_message.size());
+    close(server_pipe_fd);
+
+    router_to_server_pipe = {(string(PIPE_ROOT_PATH) + SERVER_PIPE + CLIENT_PIPE + PIPE_NAME_DELIMITER + listen_port + READ_PIPE),
+            (string(PIPE_ROOT_PATH) + SERVER_PIPE + CLIENT_PIPE + PIPE_NAME_DELIMITER + listen_port + WRITE_PIPE)};
 }
 
 void Router::start() {

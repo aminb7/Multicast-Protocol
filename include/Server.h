@@ -32,6 +32,7 @@ public:
     void handle_connection_message(std::string message);
     void handle_client_connect(std::string name);
     void handle_group_server_connect(std::string name, std::string ip);
+    void handle_router_connect(std::string port);
 
     void handle_client_message(std::string message, std::string client_name);
     void handle_get_group_list(std::string client_name);
@@ -48,6 +49,9 @@ private:
 
     /// Map from group name to its read and write pipes.
     std::map<std::string, std::pair<std::string, std::string>> group_servers_pipes;
+
+    /// Map from router port to its read and write pipes.
+    std::map<std::string, std::pair<std::string, std::string>> routers_pipes;
 
     /// Map from group name to its ip.
     std::map<std::string, std::string> groups_ip;

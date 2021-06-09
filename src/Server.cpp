@@ -146,11 +146,15 @@ void Server::handle_connect_router(string router_port) {
 
 void Server::handle_connection_message(string message) {
     vector<string> message_parts = split(message, MESSAGE_DELIMITER);
+    printf("Server::handle_connection_message\n");
     if (message_parts[ARG0] == CLIENT_TO_SERVER_CONNECT_MSG)
         handle_client_connect(message_parts[ARG1]);
 
     if (message_parts[ARG0] == GROUPSERVER_TO_SERVER_CONNECT_MSG)
         handle_group_server_connect(message_parts[ARG1], message_parts[ARG2]);
+
+    if (message_parts[ARG0] == ROUTER_TO_SERVER_CONNECT_MSG)
+        handle_router_connect(message_parts[ARG1]);
 }
 
 void Server::handle_client_connect(string name) {
@@ -180,6 +184,20 @@ void Server::handle_group_server_connect(string name, string ip) {
 
     group_servers_pipes.insert({name, group_server_pipe});
     groups_ip.insert({name, ip});
+}
+
+void Server::handle_router_connect(string port) {
+    printf("Router with port %s connects.\n", port.c_str());
+
+    pair<string, string> router_pipe = {(string(PIPE_ROOT_PATH) + SERVER_PIPE + ROUTER_PIPE + PIPE_NAME_DELIMITER + port + READ_PIPE),
+            (string(PIPE_ROOT_PATH) + SERVER_PIPE + ROUTER_PIPE + PIPE_NAME_DELIMITER + port + WRITE_PIPE)};
+
+    unlink(router_pipe.first.c_str());
+	mkfifo(router_pipe.first.c_str(), READ_WRITE);
+    unlink(router_pipe.second.c_str());
+	mkfifo(router_pipe.second.c_str(), READ_WRITE);
+
+    routers_pipes.insert({port, router_pipe});
 }
 
 void Server::handle_client_message(string message, string client_name) {
