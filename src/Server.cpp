@@ -148,7 +148,7 @@ void Server::handle_connection_message(string message) {
     vector<string> message_parts = split(message, MESSAGE_DELIMITER);
     printf("Server::handle_connection_message\n");
     if (message_parts[ARG0] == CLIENT_TO_SERVER_CONNECT_MSG)
-        handle_client_connect(message_parts[ARG1]);
+        handle_client_connect(message_parts[ARG1], message_parts[ARG2]);
 
     if (message_parts[ARG0] == GROUPSERVER_TO_SERVER_CONNECT_MSG)
         handle_group_server_connect(message_parts[ARG1], message_parts[ARG2]);
@@ -157,8 +157,8 @@ void Server::handle_connection_message(string message) {
         handle_router_connect(message_parts[ARG1]);
 }
 
-void Server::handle_client_connect(string name) {
-    printf("Client with name %s connects.\n", name.c_str());
+void Server::handle_client_connect(string name, string ip) {
+    printf("Client with name %s and ip %s connects.\n", name.c_str(), ip.c_str());
 
     pair<string, string> client_pipe = {(string(PIPE_ROOT_PATH) + SERVER_PIPE + CLIENT_PIPE + PIPE_NAME_DELIMITER + name + READ_PIPE),
             (string(PIPE_ROOT_PATH) + SERVER_PIPE + CLIENT_PIPE + PIPE_NAME_DELIMITER + name + WRITE_PIPE)};
@@ -168,6 +168,7 @@ void Server::handle_client_connect(string name) {
     unlink(client_pipe.second.c_str());
 	mkfifo(client_pipe.second.c_str(), READ_WRITE);
 
+    clients_ips.insert({name, ip});
     clients_pipes.insert({name, client_pipe});
 }
 
