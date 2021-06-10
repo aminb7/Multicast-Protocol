@@ -40,7 +40,11 @@ void Router::start() {
         string router_pipe_read = string(PIPE_ROOT_PATH) + string(listen_port);
         int router_pipe_read_fd = open(router_pipe_read.c_str(), O_RDWR);
         FD_SET(router_pipe_read_fd, &copy_fds);
-        max_fd = router_pipe_read_fd;
+
+        string server_pipe = router_to_server_pipe.second;
+        int server_pipe_fd = open(server_pipe.c_str(), O_RDWR);
+        FD_SET(server_pipe_fd, &copy_fds);
+        max_fd = router_pipe_read_fd > server_pipe_fd ? router_pipe_read_fd : server_pipe_fd;
 
         map<int, string> clients_fds = add_clients_to_set(copy_fds, max_fd);
         map<int, string> groupservers_fds = add_groupservers_to_set(copy_fds, max_fd);
@@ -75,6 +79,12 @@ void Router::start() {
                     handle_connection_message(string(received_buffer));
                 }
 
+                // Server message
+                else if (fd == server_pipe_fd) {
+                    read(fd, received_buffer, MAX_MESSAGE_SIZE);
+                    cout << "received server message: " << received_buffer << endl;
+                }
+
                 // Router message
                 else if (routers_fds.find(fd) != routers_fds.end()) {
                     read(fd, received_buffer, MAX_MESSAGE_SIZE);
@@ -96,6 +106,7 @@ void Router::start() {
         }
 
         close(router_pipe_read_fd);
+        close(server_pipe_fd);
         close_others_fds(clients_fds);
         close_others_fds(groupservers_fds);
         close_others_fds(routers_fds);
