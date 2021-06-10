@@ -41,8 +41,8 @@ public:
 
     void handle_groupservers_message(std::string message);
 
-    void send_update_join_command(std::string client_name, std::string group_name);
-    void send_update_leave_command(std::string client_name, std::string group_name);
+    void send_update_command(std::string client_name, std::string group_name, 
+                                std::string command);
 
 private:
     std::string server_ip;

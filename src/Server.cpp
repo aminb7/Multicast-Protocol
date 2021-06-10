@@ -238,6 +238,8 @@ void Server::handle_join_group(std::string client_name, std::string group_name){
         clients_groups[client_name].push_back(group_name);
 
     printf("Client named %s joined group named %s.\n", client_name.c_str(), group_name.c_str());
+
+    send_update_command(client_name, group_name, "join");
 }
 
 void Server::handle_leave_group(std::string client_name, std::string group_name){
@@ -246,18 +248,22 @@ void Server::handle_leave_group(std::string client_name, std::string group_name)
                 clients_groups[client_name].end(), group_name), clients_groups[client_name].end());
 
     printf("Client named %s leaved group named %s.\n", client_name.c_str(), group_name.c_str());
+
+    send_update_command(client_name, group_name, "leave");
 }
 
 void Server::handle_groupservers_message(string message) {
 
 }
 
-void Server::send_update_join_command(string client_name, string group_name) {
+void Server::send_update_command(string client_name, string group_name, string command) {
     string group_ip = groups_ip[group_name];
     string client_ip = clients_ips[group_name];
-}
-
-void Server::send_update_leave_command(string client_name, string group_name) {
-    string group_ip = groups_ip[group_name];
-    string client_ip = clients_ips[group_name];
+    string message = command + string("%") + client_ip + string("%") + group_ip;
+    map<string, pair<string, string>>::iterator it;
+    for (it = routers_pipes.begin(); it != routers_pipes.end(); it++) {
+        int router_fd = open(it->first.c_str(), O_RDWR);
+        write(router_fd, message.c_str(), message.size());
+        close(router_fd);
+    }
 }
