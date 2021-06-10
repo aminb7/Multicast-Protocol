@@ -24,10 +24,7 @@ Router::Router(string listen_port, string server_ip)
     router_to_server_pipe = {(string(PIPE_ROOT_PATH) + SERVER_PIPE + CLIENT_PIPE + PIPE_NAME_DELIMITER + listen_port + READ_PIPE),
             (string(PIPE_ROOT_PATH) + SERVER_PIPE + CLIENT_PIPE + PIPE_NAME_DELIMITER + listen_port + WRITE_PIPE)};
 
-    //TODO: Read these info from file
-    normal_table.push_back(make_pair("1.1.1.1", "8420"));
-    normal_table.push_back(make_pair("1.1.1.2", "8430"));
-    normal_table.push_back(make_pair("8420", "8430"));
+    normal_table = store_csv_as_map("table.csv");
 }
 
 void Router::start() {

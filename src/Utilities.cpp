@@ -35,3 +35,28 @@ vector<string> split(const string& s, char delimiter) {
       tokens.push_back(token);
    return tokens;
 }
+
+std::vector<std::pair<string, string>> store_csv_as_map(string filename) {
+    std::ifstream fin(filename);
+
+    std::vector<std::pair<string, string>> table;
+
+    if (!fin) { 
+        std::cout << "Error, could not open file." << std::endl; 
+        return table;
+    }
+
+    std::string first, second;
+    string comma = ",";
+    while (fin >> first >> comma >> second) {
+        table.push_back(make_pair(first, second));
+    }
+
+    fin.close();
+
+    for (auto & row : table) {
+        std::cout << row.first << " " << row.second << std::endl;
+    }
+
+    return table;
+}

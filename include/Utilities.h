@@ -90,3 +90,5 @@
 int create_socket(std::string ip, int port);
 
 std::vector<std::string> split(const std::string& s, char delimiter);
+
+std::vector<std::pair<std::string, std::string>> store_csv_as_map(std::string filename);
