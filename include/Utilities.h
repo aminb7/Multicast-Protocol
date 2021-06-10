@@ -27,6 +27,10 @@
 #define ARG2 2
 #define ARG3 3
 
+#define UNICAST_DIR "unicast-tables/"
+
+#define UNICAST_SUFFIX ".csv"
+
 //Message prefixes
 #define ROUTER_MESSAGE_PREFIX "router"
 #define CLIENT_MESSAGE_PREFIX "client"

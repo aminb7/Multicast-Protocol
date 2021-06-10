@@ -70,6 +70,6 @@ private:
 
     std::map<std::string, std::vector<std::string>> multicast_table;
 
-    std::vector<std::pair<std::string, std::string>> normal_table;
+    std::vector<std::pair<std::string, std::string>> unicast_table;
 };
 

@@ -24,7 +24,8 @@ Router::Router(string listen_port, string server_ip)
     router_to_server_pipe = {(string(PIPE_ROOT_PATH) + SERVER_PIPE + CLIENT_PIPE + PIPE_NAME_DELIMITER + listen_port + READ_PIPE),
             (string(PIPE_ROOT_PATH) + SERVER_PIPE + CLIENT_PIPE + PIPE_NAME_DELIMITER + listen_port + WRITE_PIPE)};
 
-    normal_table = store_csv_as_map("table.csv");
+    string table_path = UNICAST_DIR + listen_port + UNICAST_SUFFIX;
+    unicast_table = store_csv_as_map(table_path);
 }
 
 void Router::start() {
@@ -366,31 +367,16 @@ void Router::handle_leave_update(string client_ip, string group_ip) {
 }
 
 pair<string, string> Router::find_destination(string client_ip) {
-    string target = client_ip;
-    while (true) {
-        for (size_t i = 0; i < normal_table.size(); i++) {
-            if ((normal_table[i].first == target && 
-                normal_table[i].second == listen_port) ||
-                (normal_table[i].first == listen_port && 
-                normal_table[i].second == target)) {
-                if (target == client_ip)
-                    return make_pair(target, "c");
-                else 
-                    return make_pair(target, "i");
-            }
-            else if (normal_table[i].first == target ||
-                    normal_table[i].second == target) {
-                string router_ip = normal_table[i].second;
-                if (router_ip == target)
-                    string router_ip = normal_table[i].first;
-                    
-                map<string, pair<string, string>>::iterator it = 
-                                            routers_pipes.find(router_ip); 
-                if (it != routers_pipes.end())
-                    return make_pair(target, "i");
-                target = router_ip;
-                break;
-            }
+    pair<string, string> dest;
+    for (size_t i = 0; i < unicast_table.size(); i++) {
+        if (unicast_table[i].first == client_ip) {
+            string target = unicast_table[i].second;
+            if (target == listen_port)
+                dest = make_pair(client_ip, "c");
+            else 
+                dest = make_pair(target, "i");
+            break;
         }
-    } 
+    }
+    return dest; 
 }
