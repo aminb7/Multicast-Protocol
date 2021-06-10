@@ -83,6 +83,7 @@ void Router::start() {
                 else if (fd == server_pipe_fd) {
                     read(fd, received_buffer, MAX_MESSAGE_SIZE);
                     cout << "received server message: " << received_buffer << endl;
+                    handle_server_message(string(received_buffer));
                 }
 
                 // Router message
@@ -309,6 +310,18 @@ void Router::handle_router_message(string router_message) {
 
     else if (message_parts[ARG1] == "disconnect")
         accept_router_disconnect(message_parts[ARG2]);
+    
+    else printf("Unknown message.\n");
+}
+
+void Router::handle_server_message(string server_message) {
+    vector<string> message_parts = split(server_message, MESSAGE_DELIMITER);
+
+    if (message_parts[ARG1] == "join")
+        handle_join_update(message_parts[ARG2], message_parts[ARG3]);
+
+    else if (message_parts[ARG1] == "leave")
+        handle_join_update(message_parts[ARG2], message_parts[ARG3]);
     
     else printf("Unknown message.\n");
 }

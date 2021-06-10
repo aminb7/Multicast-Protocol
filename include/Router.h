@@ -35,6 +35,7 @@ public:
     void make_router_router_pipes(std::string router_port);
 
     void handle_router_message(std::string router_message);
+    void handle_server_message(std::string server_message);
     std::map<int, std::string> add_routers_to_set(fd_set& fds, int& max_fd);
     void accept_router_change_cost(std::string link_name, std::string cost);
     void accept_router_disconnect(std::string link_name);
