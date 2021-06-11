@@ -301,8 +301,34 @@ void Router::handle_disconnect(string router_port) {
     printf("Link with router %s diconnected.\n", router_port.c_str());
 }
 
-void Router::handle_show() {
+void Router::show_unicast_table() {
+    cout << "******   " << "Unicast Table" << "   ******" << endl;
+    cout << "Client_IP" << " " << "Router_Port" << endl;
+    for (auto & row : unicast_table) {
+        cout << row.first << "   " << row.second << endl;
+    }
+    cout << endl;
+}
 
+void Router::show_multicast_table() {
+    cout << "******   " << "Multicast Table" << "   ******" << endl;
+    cout << "Group_IP" << " " << "Destinations" << endl;
+    for(auto it = multicast_table.cbegin(); it != multicast_table.cend(); ++it) {
+        std::cout << it->first << "  ";
+        size_t length = it->second.size();
+        for (size_t i = 0; i < length; i++) {
+            cout << it->second[i];
+            if (i == length - 1)
+                cout << endl;
+            else
+                cout << ", ";
+        }      
+    }
+}
+
+void Router::handle_show() {
+    show_unicast_table();
+    show_multicast_table();
 }
 
 void Router::handle_router_message(string router_message, string sender_router_port) {

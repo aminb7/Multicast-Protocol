@@ -28,11 +28,7 @@ std::vector<std::pair<string, string>> store_csv_as_map(string filename) {
     }
 
     fin.close();
-
-    for (auto & row : table) {
-        std::cout << row.first << " " << row.second << std::endl;
-    }
-
+    
     return table;
 }
 

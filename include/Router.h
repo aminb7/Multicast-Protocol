@@ -26,6 +26,9 @@ public:
     void handle_disconnect(std::string router_port);
     void handle_show();
 
+    void show_unicast_table();
+    void show_multicast_table();
+
     void handle_connection_message(std::string pipe_message);
 
     void accept_router_connect(std::string pipe_name, std::string link_name);
