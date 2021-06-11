@@ -49,6 +49,7 @@
 
 #define COMMAND_DELIMITER ' '
 #define PIPE_NAME_DELIMITER '_'
+#define PORT_DELIMITER '-'
 #define MESSAGE_DELIMITER '%'
 
 // Server
@@ -72,6 +73,7 @@
 #define GET_GROUP_LIST_MSG "GetGroupList"
 #define JOIN_GROUP_MSG "JoinGroup"
 #define LEAVE_GROUP_MSG "LeaveGroup"
+#define SEND_MSG "Send"
 
 // GroupServer
 //// Commands
@@ -90,9 +92,8 @@
 //// Messages
 #define ROUTER_TO_SERVER_CONNECT_MSG "RouterServerConnect"
 
-
-int create_socket(std::string ip, int port);
-
 std::vector<std::string> split(const std::string& s, char delimiter);
 
 std::vector<std::pair<std::string, std::string>> store_csv_as_map(std::string filename);
+
+std::string read_file_to_string(std::string file_path);

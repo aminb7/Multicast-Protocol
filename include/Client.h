@@ -14,7 +14,7 @@
 class Client
 {
 public:
-    Client(std::string name, std::string server_ip, std::string router_ip,
+    Client(std::string name, std::string server_ip, std::string client_ip,
             std::string router_port);
     ~Client() = default;
 
@@ -31,7 +31,7 @@ public:
     void handle_sync();
     void handle_sign_out();
 
-    void handle_pip_message(std::string pipe_message);
+    void handle_router_message(std::string message);
 private:
 
     std::string client_ip;
@@ -39,7 +39,6 @@ private:
 
     std::string name;
     std::string server_ip;
-    std::string router_ip;
     std::string router_port;
 
     std::vector<std::string> groups;

@@ -93,6 +93,7 @@ map<int, string> Server::add_clients_to_set(fd_set& fds, int& max_fd) {
     map<int, string> clients_fds;
     map<string, pair<string, string>>::iterator it;
     for (it = clients_pipes.begin(); it != clients_pipes.end(); it++) {
+        cout << "listen to pipe: " << it->second.second << endl;
         int client_fd = open(it->second.second.c_str(), O_RDWR);
         clients_fds.insert({client_fd, it->first});
         FD_SET(client_fd, &fds);
@@ -228,11 +229,11 @@ void Server::handle_get_group_list(string client_name) {
 }
 
 void Server::handle_join_group(std::string client_name, std::string group_name){
-    if (group_servers_pipes.find(group_name) == group_servers_pipes.end()) {
-        printf("Group does not exist.\n");
-        return;
-    }
-    else if (clients_groups.find(client_name) == clients_groups.end())
+    // if (group_servers_pipes.find(group_name) == group_servers_pipes.end()) {
+    //     printf("Group does not exist.\n");
+    //     return;
+    // }
+    if (clients_groups.find(client_name) == clients_groups.end())
         clients_groups.insert({client_name, {group_name}});
     else
         clients_groups[client_name].push_back(group_name);
@@ -257,12 +258,13 @@ void Server::handle_groupservers_message(string message) {
 }
 
 void Server::send_update_command(string client_name, string group_name, string command) {
-    string group_ip = groups_ip[group_name];
-    string client_ip = clients_ips[group_name];
-    string message = command + string("%") + client_ip + string("%") + group_ip;
+    string client_ip = clients_ips[client_name];
+    string message = command + MESSAGE_DELIMITER + client_ip + MESSAGE_DELIMITER + group_name;
+    cout << "message: " << message << endl;
     map<string, pair<string, string>>::iterator it;
     for (it = routers_pipes.begin(); it != routers_pipes.end(); it++) {
-        int router_fd = open(it->first.c_str(), O_RDWR);
+        cout << "pipe: " << it->second.first << endl;
+        int router_fd = open(it->second.first.c_str(), O_RDWR);
         write(router_fd, message.c_str(), message.size());
         close(router_fd);
     }

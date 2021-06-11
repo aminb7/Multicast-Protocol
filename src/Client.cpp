@@ -8,12 +8,11 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
-Client::Client(string name, string server_ip, string router_ip, string router_port)
-: client_ip(DEFALAUT_IP)
+Client::Client(string name, string server_ip, string client_ip, string router_port)
+: client_ip(client_ip)
 , client_port(8081)
 , name(name)
 , server_ip(server_ip)
-, router_ip(router_ip)
 , router_port(router_port) {
     // Send connection message to server.
     string server_pipe = PIPE_ROOT_PATH + string(server_ip) + READ_PIPE;
@@ -75,11 +74,12 @@ void Client::start() {
                 // Router message
                 if (fd == router_pipe_fd) {
                     read(fd, received_buffer, MAX_MESSAGE_SIZE);
-                    cout << "received router message: " << received_buffer << endl;
+                    handle_router_message(string(received_buffer));
                 }
             }
         }
 
+        close(router_pipe_fd);
         cout << "--------------- event ---------------" << endl;
     }
 }
@@ -144,6 +144,7 @@ void Client::handle_get_group_list() {
 }
 
 void Client::handle_join_group(string group_name) {
+    cout << "send to pipe: " << client_to_server_pipe.second << endl;
     int pipe_write_fd = open(client_to_server_pipe.second.c_str(), O_RDWR);
     string message = string(JOIN_GROUP_MSG) + MESSAGE_DELIMITER + group_name;
     write(pipe_write_fd, message.c_str(), message.size());
@@ -166,11 +167,21 @@ void Client::handle_select_group(string group_name) {
 }
 
 void Client::handle_send_file(string file_name, string group_name) {
+    string message = read_file_to_string(file_name);
 
+    int pipe_write_fd = open(client_to_router_pipe.second.c_str(), O_RDWR);
+    string sending_message = string(SEND_MSG) + MESSAGE_DELIMITER + group_name + MESSAGE_DELIMITER + message;
+    cout << "message: " << sending_message << endl;
+    write(pipe_write_fd, sending_message.c_str(), sending_message.size());
+    close(pipe_write_fd);
 }
 
 void Client::handle_send_message(string message, string group_name) {
-
+    int pipe_write_fd = open(client_to_router_pipe.second.c_str(), O_RDWR);
+    string sending_message = string(SEND_MSG) + MESSAGE_DELIMITER + group_name + MESSAGE_DELIMITER + message;
+    cout << "message: " << sending_message << endl;
+    write(pipe_write_fd, sending_message.c_str(), sending_message.size());
+    close(pipe_write_fd);
 }
 
 void Client::handle_show_groups() {
@@ -188,6 +199,8 @@ void Client::handle_sign_out() {
 
 }
 
-void Client::handle_pip_message(string pipe_message) {
-    
+void Client::handle_router_message(std::string message) {
+    vector<string> message_parts = split(message, MESSAGE_DELIMITER);
+
+    cout << "incomming message: " << message_parts[ARG2] << endl;
 }
