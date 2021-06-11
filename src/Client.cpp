@@ -10,7 +10,6 @@ int main(int argc, char* argv[]) {
 
 Client::Client(string name, string server_ip, string client_ip, string router_port)
 : client_ip(client_ip)
-, client_port(8081)
 , name(name)
 , server_ip(server_ip)
 , router_port(router_port) {

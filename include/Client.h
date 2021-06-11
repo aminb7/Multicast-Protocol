@@ -35,7 +35,6 @@ public:
 private:
 
     std::string client_ip;
-    int client_port;
 
     std::string name;
     std::string server_ip;
