@@ -1,7 +1,6 @@
-# Multicast-Protocol
+# Multicast Protocol
 
-In this project, we implemented Distance Vector routing protocol, which uses Bellman-Ford algorithm, for routing and forwarding
-message among virtual nodes. Also we implemented BGMP protocol to handle multicasing.
+In this project, we implemented Distance Vector routing protocol, which uses Bellman-Ford algorithm, for routing and forwarding messages and files among virtual nodes. Also we implemented BGMP protocol to handle multicasing.
 
 
 ## Developers
